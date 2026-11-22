@@ -56,6 +56,8 @@ testing {
                 implementation "org.spockframework:spock-spring:$spockVersion"
                 implementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
                 implementation 'org.apache.groovy:groovy-json'
+                implementation 'software.amazon.awssdk:s3'
+                implementation 'software.amazon.awssdk:apache5-client'
             }
         }
 
@@ -92,6 +94,8 @@ testing {
                 implementation 'org.testcontainers:testcontainers'
                 implementation 'org.testcontainers:testcontainers-mongodb'
                 implementation 'software.amazon.awssdk:s3'
+                implementation 'software.amazon.awssdk:apache5-client'
+                implementation 'org.apache.groovy:groovy-json'
             }
             targets.configureEach {
                 testTask.configure {
@@ -118,6 +122,8 @@ testing {
 
 dependencies {
     testFixturesImplementation 'org.slf4j:slf4j-api'
+    testFixturesImplementation 'org.apache.groovy:groovy'
+    testFixturesImplementation 'org.apache.groovy:groovy-json'
 }
 
 tasks.named('check') {

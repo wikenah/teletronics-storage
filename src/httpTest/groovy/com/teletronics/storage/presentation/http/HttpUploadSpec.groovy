@@ -16,6 +16,7 @@ import com.teletronics.storage.domain.file.StorageKey
 import com.teletronics.storage.domain.file.StoredFile
 import com.teletronics.storage.domain.file.Tags
 import com.teletronics.storage.domain.file.Visibility
+import com.teletronics.storage.testing.RawHttpClient
 import com.teletronics.storage.testing.StoredFiles
 import org.spockframework.spring.SpringBean
 import org.springframework.boot.test.context.SpringBootTest

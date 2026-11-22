@@ -47,6 +47,7 @@ Decided:
   - **RustFS, documented and not built** (Apache-2.0, 1.0.6 on 15 Nov 2026). It speaks the S3 API, so it would run on the same `S3BlobStore` with different configuration; no new adapter code.
   - **GridFS, documented and not built.** A genuinely different adapter behind the same port: no extra container, but the bytes would live in the database.
 - A spike when building checks SeaweedFS for: multipart upload and abort, a 0-byte object, a large object, and automatic cleanup of incomplete uploads. If any fails, switch the configuration to RustFS.
+- **Spike result (build, SeaweedFS 4.54, `S3BlobStoreSeaweedSpec`):** multipart create, upload part and complete work, including a body of exactly one part. Abort leaves no object and no open upload. 0-byte objects read back empty. The AWS SDK's default request checksums are accepted, so the client keeps SDK defaults. A large object is covered by SYS-01. Automatic cleanup of incomplete uploads was not checked (the sweeper is documented only).
 
 ## How bytes are written (decision 2)
 

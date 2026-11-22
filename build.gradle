@@ -111,7 +111,7 @@ testing {
 }
 
 dependencies {
-    testFixturesImplementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    testFixturesImplementation 'org.slf4j:slf4j-api'
 }
 
 tasks.named('check') {

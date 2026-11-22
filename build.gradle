@@ -66,11 +66,16 @@ testing {
                 implementation testFixtures(project())
                 implementation "org.spockframework:spock-spring:$spockVersion"
                 implementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+                implementation 'org.apache.groovy:groovy-json'
             }
             targets.configureEach {
                 testTask.configure {
                     maxHeapSize = '256m'
                     shouldRunAfter(test)
+                    // A temp dir of its own, so a spec can prove nothing is spooled to disk.
+                    def tmp = layout.buildDirectory.dir('tmp/httpTest-java-tmp').get().asFile
+                    systemProperty 'java.io.tmpdir', tmp.absolutePath
+                    doFirst { tmp.mkdirs() }
                 }
             }
         }

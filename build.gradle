@@ -55,6 +55,7 @@ testing {
                 implementation testFixtures(project())
                 implementation "org.spockframework:spock-spring:$spockVersion"
                 implementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+                implementation 'org.apache.groovy:groovy-json'
             }
         }
 

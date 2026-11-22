@@ -77,7 +77,7 @@ public class FileService {
             reservation.close();
             throw e;
         }
-        return new PendingUpload(owner, filename, visibility, tags, declaredType,
+        return new AdmittedUpload(owner, filename, visibility, tags, declaredType,
                 command.declaredLength(), reservation);
     }
 
@@ -138,11 +138,7 @@ public class FileService {
         }
     }
 
-    /**
-     * An admitted upload holding its memory reservation. {@link #complete(InputStream)} streams the body;
-     * {@link #close()} always returns the reservation.
-     */
-    public final class PendingUpload implements AutoCloseable {
+    private final class AdmittedUpload implements PendingUpload {
 
         private final OwnerId owner;
         private final Filename filename;
@@ -152,7 +148,7 @@ public class FileService {
         private final OptionalLong declaredLength;
         private final UploadBudget.Reservation reservation;
 
-        private PendingUpload(OwnerId owner, Filename filename, Visibility visibility, Tags tags,
+        private AdmittedUpload(OwnerId owner, Filename filename, Visibility visibility, Tags tags,
                               Optional<ContentType> declaredType, OptionalLong declaredLength,
                               UploadBudget.Reservation reservation) {
             this.owner = owner;
@@ -164,6 +160,7 @@ public class FileService {
             this.reservation = reservation;
         }
 
+        @Override
         public StoredFile complete(InputStream body) {
             StorageKey key = StorageKey.random();
             DigestingInputStream digesting = new DigestingInputStream(body, detector.prefixLength());

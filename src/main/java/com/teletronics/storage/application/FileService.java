@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.OptionalLong;
 
@@ -130,6 +132,11 @@ public class FileService {
         }
     }
 
+    /** Millisecond precision, the precision MongoDB stores dates with, so every store returns the same value. */
+    private Instant uploadedAt() {
+        return clock.instant().truncatedTo(ChronoUnit.MILLIS);
+    }
+
     private void deleteBytesOrLogOrphan(StorageKey key, String reason) {
         try {
             blobs.delete(key);
@@ -181,7 +188,7 @@ public class FileService {
                     .orElseGet(() -> detector.detect(digesting.prefix(), filename));
 
             StoredFile file = new StoredFile(FileId.newId(), owner, filename, visibility, tags, size,
-                    digesting.sha256(), contentType, clock.instant(), DownloadToken.generate(), key);
+                    digesting.sha256(), contentType, uploadedAt(), DownloadToken.generate(), key);
             try {
                 files.insert(file);
                 return file;

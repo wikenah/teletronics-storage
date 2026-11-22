@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: teletronics-storage
+  servlet:
+    multipart:
+      # Spring would otherwise parse multipart bodies (spooling to disk) before our handler runs,
+      # and under onRead that parsing would trigger the 100 Continue early (http-api.md, configuration).
+      enabled: false
+  mvc:
+    problemdetails:
+      enabled: true
+  mongodb:
+    uri: mongodb://localhost:27017/teletronics
+  data:
+    mongodb:
+      auto-index-creation: true
+
+server:
+  tomcat:
+    # Idle time per read, not a total limit (API-19, API-20).
+    connection-timeout: 60s
+    # Tomcat's default; bounds what is drained after an early rejection without Expect.
+    max-swallow-size: 2MB
+
+uploads:
+  # Memory budget for upload part buffers, in MiB (Storage decision 2).
+  buffer-budget-mib: 256
+
+storage:
+  s3:
+    endpoint: http://localhost:8333
+    region: us-east-1
+    bucket: files
+    access-key: teletronics
+    secret-key: teletronics-secret
+    max-connections: 200
+    ensure-bucket: true

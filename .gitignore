@@ -1,0 +1,14 @@
+# Build
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Local tool folders (not part of the project)
+.serena/
+.playwright-mcp/

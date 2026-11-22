@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+
+      # Compile and run unit, controller, HTTP and integration tests (Testcontainers), then build app.jar.
+      - name: Build and test
+        run: ./gradlew build
+
+      # The brief: "setup CI that builds a target Docker image".
+      - name: Build Docker image
+        run: docker build -t teletronics-storage:ci .
+
+      # End-to-end checks against the built image (SYS-01, SYS-02).
+      - name: Container tests
+        run: ./gradlew containerTest -PappImage=teletronics-storage:ci
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: build/reports/tests

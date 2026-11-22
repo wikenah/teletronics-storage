@@ -1,0 +1,126 @@
+plugins {
+    id 'java'
+    id 'groovy'
+    id 'java-test-fixtures'
+    id 'org.springframework.boot' version '4.1.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.teletronics'
+version = '0.1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+def spockVersion = '2.5-groovy-5.0'
+
+dependencyManagement {
+    imports {
+        mavenBom 'software.amazon.awssdk:bom:2.59.7'
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:apache5-client'
+    implementation 'org.apache.tika:tika-core:4.2.0'
+}
+
+// The AWS SDK brings its async Netty client at runtime; we only use the sync Apache 5 client.
+configurations.configureEach {
+    exclude group: 'software.amazon.awssdk', module: 'netty-nio-client'
+}
+
+testing {
+    suites {
+        configureEach {
+            if (it instanceof JvmTestSuite) {
+                useSpock(spockVersion)
+            }
+        }
+
+        // Unit, service and controller (@WebMvcTest) specs.
+        test {
+            dependencies {
+                implementation testFixtures(project())
+                implementation "org.spockframework:spock-spring:$spockVersion"
+                implementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+            }
+        }
+
+        // Real Tomcat on a random port, file service faked. Small heap: proves streaming.
+        httpTest(JvmTestSuite) {
+            dependencies {
+                implementation project()
+                implementation testFixtures(project())
+                implementation "org.spockframework:spock-spring:$spockVersion"
+                implementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+            }
+            targets.configureEach {
+                testTask.configure {
+                    maxHeapSize = '256m'
+                    shouldRunAfter(test)
+                }
+            }
+        }
+
+        // Real Mongo and SeaweedFS in containers.
+        integrationTest(JvmTestSuite) {
+            dependencies {
+                implementation project()
+                implementation testFixtures(project())
+                implementation "org.spockframework:spock-spring:$spockVersion"
+                implementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+                implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-test'
+                implementation 'org.springframework.boot:spring-boot-testcontainers'
+                implementation 'org.testcontainers:testcontainers'
+                implementation 'org.testcontainers:testcontainers-mongodb'
+                implementation 'software.amazon.awssdk:s3'
+            }
+            targets.configureEach {
+                testTask.configure {
+                    shouldRunAfter(test, httpTest)
+                }
+            }
+        }
+
+        // Black-box tests against the built Docker image (SYS-xx). Not part of `check`.
+        containerTest(JvmTestSuite) {
+            dependencies {
+                implementation 'org.testcontainers:testcontainers'
+                implementation 'org.testcontainers:testcontainers-mongodb'
+                implementation 'org.apache.groovy:groovy-json'
+            }
+            targets.configureEach {
+                testTask.configure {
+                    systemProperty 'app.image', providers.gradleProperty('appImage').getOrElse('teletronics-storage:local')
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    testFixturesImplementation 'org.springframework.boot:spring-boot-starter-webmvc'
+}
+
+tasks.named('check') {
+    dependsOn testing.suites.httpTest, testing.suites.integrationTest
+}
+
+tasks.named('jar') {
+    enabled = false
+}
+
+tasks.named('bootJar') {
+    archiveFileName = 'app.jar'
+}

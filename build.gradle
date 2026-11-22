@@ -51,6 +51,7 @@ testing {
         // Unit, service and controller (@WebMvcTest) specs.
         test {
             dependencies {
+                implementation project()
                 implementation testFixtures(project())
                 implementation "org.spockframework:spock-spring:$spockVersion"
                 implementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
@@ -115,10 +116,6 @@ dependencies {
 
 tasks.named('check') {
     dependsOn testing.suites.httpTest, testing.suites.integrationTest
-}
-
-tasks.named('jar') {
-    enabled = false
 }
 
 tasks.named('bootJar') {

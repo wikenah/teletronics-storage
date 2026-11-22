@@ -2,12 +2,12 @@ package com.teletronics.storage.presentation.http.request;
 
 import com.teletronics.storage.application.UploadCommand;
 import com.teletronics.storage.domain.file.Visibility;
+import com.teletronics.storage.presentation.http.problem.FormBodyNotSupportedException;
 import com.teletronics.storage.presentation.http.problem.InvalidRequestException;
 import com.teletronics.storage.presentation.http.problem.UnsupportedContentEncodingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +26,7 @@ public final class UploadRequestParser {
     private UploadRequestParser() {
     }
 
-    public static UploadCommand parse(HttpServletRequest request) throws HttpMediaTypeNotSupportedException {
+    public static UploadCommand parse(HttpServletRequest request) {
         String contentType = request.getContentType();
         rejectFormBodies(contentType);
         rejectCompressedBodies(request.getHeader("Content-Encoding"));
@@ -57,7 +57,7 @@ public final class UploadRequestParser {
                 length >= 0 ? OptionalLong.of(length) : OptionalLong.empty());
     }
 
-    private static void rejectFormBodies(String contentType) throws HttpMediaTypeNotSupportedException {
+    private static void rejectFormBodies(String contentType) {
         if (contentType == null || contentType.isBlank()) {
             return;
         }
@@ -68,8 +68,7 @@ public final class UploadRequestParser {
             throw new InvalidRequestException("Content-Type", "the Content-Type header is not a valid media type");
         }
         if (MediaType.MULTIPART_FORM_DATA.includes(type) || MediaType.APPLICATION_FORM_URLENCODED.includes(type)) {
-            throw new HttpMediaTypeNotSupportedException(
-                    "Send the file as the raw request body, not as a form (" + type + ")");
+            throw new FormBodyNotSupportedException(type.getType() + "/" + type.getSubtype());
         }
     }
 

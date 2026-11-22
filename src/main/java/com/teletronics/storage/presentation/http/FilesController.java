@@ -14,7 +14,6 @@ import com.teletronics.storage.presentation.http.response.PageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -44,8 +43,7 @@ public class FilesController {
     }
 
     @PostMapping
-    public ResponseEntity<FileResponse> upload(HttpServletRequest request)
-            throws HttpMediaTypeNotSupportedException, IOException {
+    public ResponseEntity<FileResponse> upload(HttpServletRequest request) throws IOException {
         try (PendingUpload pending = files.startUpload(UploadRequestParser.parse(request))) {
             StoredFile file = pending.complete(request.getInputStream());
             return ResponseEntity.created(URI.create("/files/" + file.id().value())).body(FileResponse.of(file));

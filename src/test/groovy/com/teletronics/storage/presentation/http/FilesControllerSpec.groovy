@@ -137,9 +137,10 @@ class FilesControllerSpec extends Specification {
         when: "its Content-Type is #type"
         def response = perform(request)
 
-        then: "the response is 415 with type about:blank"
+        then: "the response is 415 with type about:blank, saying to send the raw bytes"
         response.status == 415
         problem(response).type == "about:blank"
+        problem(response).detail.contains("raw request body")
 
         and: "the file service is not called"
         0 * files._

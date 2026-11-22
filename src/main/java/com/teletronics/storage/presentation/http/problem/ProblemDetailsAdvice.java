@@ -84,6 +84,11 @@ public class ProblemDetailsAdvice extends ResponseEntityExceptionHandler {
                 "Temporarily unavailable", "A storage service is unavailable; try again later"));
     }
 
+    @ExceptionHandler(FormBodyNotSupportedException.class)
+    ResponseEntity<ProblemDetail> formBody(FormBodyNotSupportedException e) {
+        return respond(ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE, e.getMessage()));
+    }
+
     @ExceptionHandler(UnsupportedContentEncodingException.class)
     ResponseEntity<ProblemDetail> encoding(UnsupportedContentEncodingException e) {
         ProblemDetail problem = problem(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ProblemTypes.UNSUPPORTED_CONTENT_ENCODING,

@@ -1,4 +1,4 @@
-package com.teletronics.storage.presentation.http.mapper;
+package com.teletronics.storage.presentation.http.validator;
 
 import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
 import lombok.experimental.UtilityClass;
@@ -11,15 +11,16 @@ import java.util.Set;
  * so the keys are checked here (API-26): only the name can change.
  */
 @UtilityClass
-public class RenameBodyParser {
+public class RenameBodyValidator {
 
-    public static String filename(Map<String, Object> body) {
-        if (body == null || !body.keySet().equals(Set.of("filename"))) {
+    public static final String FILENAME = "filename";
+
+    public static void validate(Map<String, Object> body) {
+        if (body == null || !body.keySet().equals(Set.of(FILENAME))) {
             throw new InvalidRequestException("body", "the body must be exactly {\"filename\": \"...\"}; only the name can change");
         }
-        if (!(body.get("filename") instanceof String filename)) {
-            throw new InvalidRequestException("filename", "filename must be a string");
+        if (!(body.get(FILENAME) instanceof String)) {
+            throw new InvalidRequestException(FILENAME, "filename must be a string");
         }
-        return filename;
     }
 }

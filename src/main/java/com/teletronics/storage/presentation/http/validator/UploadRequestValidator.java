@@ -9,7 +9,8 @@ import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 
 /**
- * Rejects the upload requests only HTTP can judge: form bodies and compressed bodies (API-05, API-24).
+ * Rejects the upload requests only HTTP can judge: form bodies, compressed bodies and a missing
+ * X-User-Id header (API-01, API-05, API-24).
  * It reads headers only. It must run before anything reads a request parameter: for a form-urlencoded
  * POST, reading parameters would consume the body.
  */
@@ -19,6 +20,7 @@ public class UploadRequestValidator {
     public static void validate(HttpServletRequest request) {
         rejectFormBodies(request.getContentType());
         rejectCompressedBodies(request.getHeader("Content-Encoding"));
+        UserIdValidator.validate(request);
     }
 
     private static void rejectFormBodies(String contentType) {

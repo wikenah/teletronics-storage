@@ -10,7 +10,7 @@ import java.util.OptionalLong;
 
 /**
  * Maps an upload request's headers and query parameters to an {@link UploadCommand}, without touching the
- * body. The filename, visibility and tags are checked by their own types when the command is built
+ * body. Expects a request that UploadRequestValidator has accepted. The filename, visibility and tags are checked by their own types when the command is built
  * (API-01 to API-04).
  */
 @UtilityClass
@@ -20,7 +20,7 @@ public class UploadCommandMapper {
         String[] tags = request.getParameterValues("tags");
         long length = request.getContentLengthLong();
         return UploadCommand.of(
-                RequestUser.required(request),
+                request.getHeader(OwnerIdMapper.HEADER),
                 request.getParameter("filename"),
                 request.getParameter("visibility"),
                 tags == null ? List.of() : List.of(tags),

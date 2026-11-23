@@ -7,13 +7,16 @@ import com.teletronics.storage.domain.file.StoredFile;
 import com.teletronics.storage.domain.file.exception.FileNotFoundException;
 import com.teletronics.storage.domain.file.query.FileQuery;
 import com.teletronics.storage.domain.file.valueobject.FileId;
-import com.teletronics.storage.presentation.http.mapper.ListParamsParser;
-import com.teletronics.storage.presentation.http.mapper.RenameBodyParser;
-import com.teletronics.storage.presentation.http.mapper.RequestUser;
+import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.presentation.http.mapper.FileQueryMapper;
+import com.teletronics.storage.presentation.http.mapper.OwnerIdMapper;
 import com.teletronics.storage.presentation.http.mapper.UploadCommandMapper;
 import com.teletronics.storage.presentation.http.response.FileResponse;
 import com.teletronics.storage.presentation.http.response.PageResponse;
+import com.teletronics.storage.presentation.http.validator.ListParamsValidator;
+import com.teletronics.storage.presentation.http.validator.RenameBodyValidator;
 import com.teletronics.storage.presentation.http.validator.UploadRequestValidator;
+import com.teletronics.storage.presentation.http.validator.UserIdValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -59,31 +62,34 @@ public class FilesController {
 
     @GetMapping(FILES + "/{id}")
     public FileResponse get(@PathVariable String id, HttpServletRequest request) {
-        return FileResponse.of(files.get(RequestUser.owner(request), fileId(id)));
+        return FileResponse.of(files.get(owner(request), fileId(id)));
     }
 
     @PatchMapping(path = FILES + "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public FileResponse rename(@PathVariable String id, @RequestBody Map<String, Object> body,
                                HttpServletRequest request) {
-        String newName = RenameBodyParser.filename(body);
-        return FileResponse.of(files.rename(RequestUser.owner(request), fileId(id), newName));
+        RenameBodyValidator.validate(body);
+        String newName = (String) body.get(RenameBodyValidator.FILENAME);
+        return FileResponse.of(files.rename(owner(request), fileId(id), newName));
     }
 
     @DeleteMapping(FILES + "/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id, HttpServletRequest request) {
-        files.delete(RequestUser.owner(request), fileId(id));
+        files.delete(owner(request), fileId(id));
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping(FILES)
     public PageResponse mine(HttpServletRequest request) {
-        FileQuery query = ListParamsParser.parse(request, FileQuery.ownedBy(RequestUser.owner(request)));
-        return PageResponse.of(files.list(query));
+        OwnerId owner = owner(request);
+        ListParamsValidator.validate(request);
+        return PageResponse.of(files.list(FileQueryMapper.toQuery(request, FileQuery.ownedBy(owner))));
     }
 
     @GetMapping(FILES + "/public")
     public PageResponse publicFiles(HttpServletRequest request) {
-        return PageResponse.of(files.list(ListParamsParser.parse(request, FileQuery.publicFiles())));
+        ListParamsValidator.validate(request);
+        return PageResponse.of(files.list(FileQueryMapper.toQuery(request, FileQuery.publicFiles())));
     }
 
     @GetMapping(FileResponse.DOWNLOAD_PATH + "{token}")
@@ -99,6 +105,11 @@ public class FilesController {
             response.setHeader("X-Content-Type-Options", "nosniff");
             body.transferTo(response.getOutputStream());
         }
+    }
+
+    private static OwnerId owner(HttpServletRequest request) {
+        UserIdValidator.validate(request);
+        return OwnerIdMapper.toOwnerId(request);
     }
 
     /** An id that can't exist is the same as one that doesn't: 404, like any unknown file. */

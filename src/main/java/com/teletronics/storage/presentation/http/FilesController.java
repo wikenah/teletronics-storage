@@ -10,7 +10,8 @@ import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.presentation.http.request.ListParamsParser;
 import com.teletronics.storage.presentation.http.request.RenameBodyParser;
 import com.teletronics.storage.presentation.http.request.RequestUser;
-import com.teletronics.storage.presentation.http.request.UploadRequestParser;
+import com.teletronics.storage.presentation.http.request.UploadCommandMapper;
+import com.teletronics.storage.presentation.http.request.UploadRequestValidator;
 import com.teletronics.storage.presentation.http.response.FileResponse;
 import com.teletronics.storage.presentation.http.response.PageResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,7 +52,8 @@ public class FilesController {
 
     @PostMapping(FILES)
     public ResponseEntity<FileResponse> upload(HttpServletRequest request) throws IOException {
-        try (PendingUpload pending = files.startUpload(UploadRequestParser.parse(request))) {
+        UploadRequestValidator.validate(request);
+        try (PendingUpload pending = files.startUpload(UploadCommandMapper.toCommand(request))) {
             StoredFile file = pending.complete(request.getInputStream());
             return ResponseEntity.created(URI.create(FILES + "/" + file.id().value())).body(FileResponse.of(file));
         }

@@ -1,6 +1,5 @@
 package com.teletronics.storage.presentation.http.request;
 
-import com.teletronics.storage.application.upload.UploadCommand;
 import com.teletronics.storage.presentation.http.exception.FormBodyNotSupportedException;
 import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
 import com.teletronics.storage.presentation.http.exception.UnsupportedContentEncodingException;
@@ -8,35 +7,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalLong;
-
 /**
- * Reads an upload request's headers and query parameters without touching the body. What only HTTP knows is
- * rejected here (form bodies, compressed bodies, a missing X-User-Id header); the filename, visibility and
- * tags are checked by their own types when the command is built (API-01 to API-05, API-24). The content type
- * is checked first: for a form-urlencoded POST, reading parameters would consume the body.
+ * Rejects the upload requests only HTTP can judge: form bodies and compressed bodies (API-05, API-24).
+ * It reads headers only. It must run before anything reads a request parameter: for a form-urlencoded
+ * POST, reading parameters would consume the body.
  */
-public final class UploadRequestParser {
+public final class UploadRequestValidator {
 
-    private UploadRequestParser() {
+    private UploadRequestValidator() {
     }
 
-    public static UploadCommand parse(HttpServletRequest request) {
-        String contentType = request.getContentType();
-        rejectFormBodies(contentType);
+    public static void validate(HttpServletRequest request) {
+        rejectFormBodies(request.getContentType());
         rejectCompressedBodies(request.getHeader("Content-Encoding"));
-        String owner = RequestUser.required(request);
-        String[] tags = request.getParameterValues("tags");
-        long length = request.getContentLengthLong();
-        return UploadCommand.of(
-                owner,
-                request.getParameter("filename"),
-                request.getParameter("visibility"),
-                tags == null ? List.of() : List.of(tags),
-                Optional.ofNullable(contentType).map(String::trim).filter(value -> !value.isEmpty()),
-                length >= 0 ? OptionalLong.of(length) : OptionalLong.empty());
     }
 
     private static void rejectFormBodies(String contentType) {

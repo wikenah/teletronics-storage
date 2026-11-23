@@ -32,6 +32,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalLong;
+import java.util.function.Supplier;
 
 /**
  * BlobStore on any S3-compatible server (SeaweedFS in compose; RustFS or AWS by configuration).
@@ -79,32 +80,24 @@ public class S3BlobStore implements BlobStore {
     @Override
     public InputStream open(StorageKey key) {
         try {
-            return s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key.value()).build());
+            return call(() -> s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key.value()).build()));
         } catch (NoSuchKeyException e) {
             throw new BlobNotFoundException(key.value());
-        } catch (RuntimeException e) {
-            throw translate(e);
         }
     }
 
     @Override
     public void delete(StorageKey key) {
-        try {
-            s3.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(key.value()).build());
-        } catch (RuntimeException e) {
-            throw translate(e);
-        }
+        call(() -> s3.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(key.value()).build()));
     }
 
     /** Creates the bucket if it doesn't exist yet (compose and tests start with an empty store). */
     public void ensureBucket() {
         try {
             s3.headBucket(HeadBucketRequest.builder().bucket(bucket).build());
-        } catch (NoSuchBucketException e) {
-            s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-            log.info("created bucket {}", bucket);
         } catch (S3Exception e) {
-            if (e.statusCode() != 404) {
+            // Some servers answer a missing bucket with a bare 404 instead of NoSuchBucket.
+            if (!(e instanceof NoSuchBucketException) && e.statusCode() != 404) {
                 throw translate(e);
             }
             s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
@@ -113,22 +106,14 @@ public class S3BlobStore implements BlobStore {
     }
 
     private void putObject(StorageKey key, byte[] buffer, int length) {
-        try {
-            s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key.value()).contentLength((long) length).build(),
-                    body(buffer, length));
-        } catch (RuntimeException e) {
-            throw translate(e);
-        }
+        call(() -> s3.putObject(
+                PutObjectRequest.builder().bucket(bucket).key(key.value()).contentLength((long) length).build(),
+                body(buffer, length)));
     }
 
     private void multipart(StorageKey key, InputStream body, byte[] buffer, int firstLength) {
-        String uploadId;
-        try {
-            uploadId = s3.createMultipartUpload(CreateMultipartUploadRequest.builder()
-                    .bucket(bucket).key(key.value()).contentType(BINARY).build()).uploadId();
-        } catch (RuntimeException e) {
-            throw translate(e);
-        }
+        String uploadId = call(() -> s3.createMultipartUpload(CreateMultipartUploadRequest.builder()
+                .bucket(bucket).key(key.value()).contentType(BINARY).build())).uploadId();
         try {
             List<CompletedPart> completed = new ArrayList<>();
             int length = firstLength;
@@ -177,6 +162,14 @@ public class S3BlobStore implements BlobStore {
             return body.readNBytes(buffer, 0, buffer.length);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    private static <T> T call(Supplier<T> request) {
+        try {
+            return request.get();
+        } catch (RuntimeException e) {
+            throw translate(e);
         }
     }
 

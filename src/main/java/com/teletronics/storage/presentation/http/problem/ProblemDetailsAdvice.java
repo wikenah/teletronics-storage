@@ -52,13 +52,14 @@ public class ProblemDetailsAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(DuplicateFileException.class)
     ResponseEntity<ProblemDetail> duplicate(DuplicateFileException e) {
-        boolean byName = e.kind() == DuplicateFileException.Kind.FILENAME;
-        ProblemDetail problem = problem(HttpStatus.CONFLICT,
-                byName ? ProblemTypes.FILENAME_EXISTS : ProblemTypes.CONTENT_EXISTS,
-                byName ? "Filename already exists" : "Content already exists",
-                byName ? "You already have a file with this name" : "You already have a file with this content");
+        ProblemDetail problem = switch (e.kind()) {
+            case FILENAME -> problem(HttpStatus.CONFLICT, ProblemTypes.FILENAME_EXISTS,
+                    "Filename already exists", "You already have a file with this name");
+            case CONTENT -> problem(HttpStatus.CONFLICT, ProblemTypes.CONTENT_EXISTS,
+                    "Content already exists", "You already have a file with this content");
+        };
         problem.setProperty("existingFile", existingFile(e.existing()));
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+        return respond(problem);
     }
 
     @ExceptionHandler(FileNotFoundException.class)
@@ -107,9 +108,8 @@ public class ProblemDetailsAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
             HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        ProblemDetail problem = problem(HttpStatus.BAD_REQUEST, ProblemTypes.INVALID_REQUEST,
-                "Invalid request", "The request body is not valid JSON");
-        return ResponseEntity.badRequest().body(problem);
+        return ResponseEntity.badRequest().body(problem(HttpStatus.BAD_REQUEST, ProblemTypes.INVALID_REQUEST,
+                "Invalid request", "The request body is not valid JSON"));
     }
 
     private ResponseEntity<ProblemDetail> invalid(String field, String detail) {

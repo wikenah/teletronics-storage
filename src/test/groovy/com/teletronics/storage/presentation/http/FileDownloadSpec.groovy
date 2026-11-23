@@ -1,6 +1,6 @@
 package com.teletronics.storage.presentation.http
 
-import com.teletronics.storage.application.Download
+import com.teletronics.storage.application.download.Download
 import com.teletronics.storage.application.FileService
 import com.teletronics.storage.application.exception.RecordWithoutBytesException
 import com.teletronics.storage.domain.file.exception.FileNotFoundException

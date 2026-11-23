@@ -1,5 +1,6 @@
 package com.teletronics.storage.application;
 
+import com.teletronics.storage.application.download.Download;
 import com.teletronics.storage.application.exception.BlobNotFoundException;
 import com.teletronics.storage.application.exception.FileTooLargeException;
 import com.teletronics.storage.application.exception.RecordWithoutBytesException;

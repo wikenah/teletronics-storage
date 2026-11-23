@@ -1,4 +1,4 @@
-package com.teletronics.storage.application;
+package com.teletronics.storage.application.download;
 
 import com.teletronics.storage.domain.file.StoredFile;
 

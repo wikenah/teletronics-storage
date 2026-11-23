@@ -10,6 +10,7 @@ import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.domain.file.valueobject.UserId;
 import com.teletronics.storage.presentation.http.mapper.FileQueryMapper;
 import com.teletronics.storage.presentation.http.mapper.UploadCommandMapper;
+import com.teletronics.storage.presentation.http.request.ListParams;
 import com.teletronics.storage.presentation.http.resolver.CurrentUser;
 import com.teletronics.storage.presentation.http.response.FileResponse;
 import com.teletronics.storage.presentation.http.response.PageResponse;
@@ -79,15 +80,15 @@ public class FilesController {
     }
 
     @GetMapping(FILES)
-    public PageResponse mine(@CurrentUser UserId userId, HttpServletRequest request) {
-        ListParamsValidator.validate(request);
-        return PageResponse.of(fileService.list(FileQueryMapper.toQuery(request, FileQuery.ownedBy(userId))));
+    public PageResponse mine(@CurrentUser UserId userId, ListParams params) {
+        ListParamsValidator.validate(params);
+        return PageResponse.of(fileService.list(FileQueryMapper.toQuery(params, FileQuery.ownedBy(userId))));
     }
 
     @GetMapping(FILES + "/public")
-    public PageResponse publicFiles(HttpServletRequest request) {
-        ListParamsValidator.validate(request);
-        return PageResponse.of(fileService.list(FileQueryMapper.toQuery(request, FileQuery.publicFiles())));
+    public PageResponse publicFiles(ListParams params) {
+        ListParamsValidator.validate(params);
+        return PageResponse.of(fileService.list(FileQueryMapper.toQuery(params, FileQuery.publicFiles())));
     }
 
     @GetMapping(FileResponse.DOWNLOAD_PATH + "{token}")

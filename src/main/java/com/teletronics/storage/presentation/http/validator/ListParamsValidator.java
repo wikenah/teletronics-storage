@@ -2,9 +2,10 @@ package com.teletronics.storage.presentation.http.validator;
 
 import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
 import com.teletronics.storage.presentation.http.mapper.FileQueryMapper;
-import jakarta.servlet.http.HttpServletRequest;
+import com.teletronics.storage.presentation.http.request.ListParams;
 import lombok.experimental.UtilityClass;
 
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -15,15 +16,14 @@ import java.util.Locale;
 @UtilityClass
 public class ListParamsValidator {
 
-    public static void validate(HttpServletRequest request) {
-        requireWholeNumber(request, "page");
-        requireWholeNumber(request, "size");
-        validateSort(request.getParameter("sort"));
-        validateTag(request.getParameterValues("tag"));
+    public static void validate(ListParams params) {
+        requireWholeNumber("page", params.page());
+        requireWholeNumber("size", params.size());
+        validateSort(params.sort());
+        validateTag(params.tag());
     }
 
-    private static void requireWholeNumber(HttpServletRequest request, String name) {
-        String value = request.getParameter(name);
+    private static void requireWholeNumber(String name, String value) {
         if (value == null) {
             return;
         }
@@ -50,15 +50,10 @@ public class ListParamsValidator {
         }
     }
 
-    private static void validateTag(String[] tags) {
-        if (tags == null) {
-            return;
-        }
-        if (tags.length > 1) {
+    /** Spring splits a comma-separated value, so tag=a,b counts as two tags, like tag=a&tag=b. */
+    private static void validateTag(List<String> tags) {
+        if (tags != null && tags.size() != 1) {
             throw new InvalidRequestException("tag", "filter by one tag at a time");
-        }
-        if (tags[0].indexOf(',') >= 0) {
-            throw new InvalidRequestException("tag", "a tag must not contain a comma");
         }
     }
 }

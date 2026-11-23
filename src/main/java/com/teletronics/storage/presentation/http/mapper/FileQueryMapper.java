@@ -3,7 +3,7 @@ package com.teletronics.storage.presentation.http.mapper;
 import com.teletronics.storage.domain.file.query.FileQuery;
 import com.teletronics.storage.domain.file.query.SortField;
 import com.teletronics.storage.domain.file.valueobject.Tag;
-import jakarta.servlet.http.HttpServletRequest;
+import com.teletronics.storage.presentation.http.request.ListParams;
 import lombok.experimental.UtilityClass;
 
 import java.util.Map;
@@ -23,20 +23,17 @@ public class FileQueryMapper {
             "contentType", SortField.CONTENT_TYPE,
             "size", SortField.SIZE);
 
-    public static FileQuery toQuery(HttpServletRequest request, FileQuery base) {
-        FileQuery query = base.page(integer(request, "page", 0), integer(request, "size", FileQuery.DEFAULT_SIZE));
-        String sort = request.getParameter("sort");
-        if (sort != null) {
-            String[] parts = sort.split(",", -1);
+    public static FileQuery toQuery(ListParams params, FileQuery base) {
+        FileQuery query = base.page(integer(params.page(), 0), integer(params.size(), FileQuery.DEFAULT_SIZE));
+        if (params.sort() != null) {
+            String[] parts = params.sort().split(",", -1);
             boolean ascending = parts.length < 2 || parts[1].trim().equalsIgnoreCase("asc");
             query = query.sortedBy(SORT_FIELDS.get(parts[0].trim()), ascending);
         }
-        String tag = request.getParameter("tag");
-        return tag == null ? query : query.withTag(Tag.of(tag));
+        return params.tag() == null ? query : query.withTag(Tag.of(params.tag().getFirst()));
     }
 
-    private static int integer(HttpServletRequest request, String name, int fallback) {
-        String value = request.getParameter(name);
+    private static int integer(String value, int fallback) {
         return value == null ? fallback : Integer.parseInt(value.trim());
     }
 }

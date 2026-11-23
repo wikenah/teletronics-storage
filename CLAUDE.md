@@ -48,7 +48,7 @@ The design goal is uploads of any size inside a 1 GB container, with rejections 
 
 1. `FilesController.upload` takes the raw `HttpServletRequest`, never `@RequestBody` or multipart. Nothing may read the body before all checks pass.
 2. `TomcatContinueTimingCustomizer` sets `continueResponseTiming=onRead`, so `100 Continue` is sent only when the app first reads the body. Changing this breaks the Expect-dependent specs in `HttpUploadSpec`.
-3. `UploadRequestParser` rejects what only HTTP knows (form bodies, compressed bodies, missing `X-User-Id`) and builds an `UploadCommand` of value objects. Input is validated once, by the value's own type; don't re-validate in the service (decision X6).
+3. `UploadRequestParser` rejects what only HTTP knows (form bodies, compressed bodies, missing `X-User-Id`) and builds an `UploadCommand` of value objects. Input is validated once, by the value's own type; don't re-validate in the service.
 4. `FileService.startUpload` checks, in order: can the part size ever fit the budget (413), is budget available now (503, never waits), is the filename taken (409). It returns a `PendingUpload` holding the budget reservation; the controller must close it.
 5. `PendingUpload.complete(stream)` pipes the body through `DigestingInputStream` (SHA-256, byte count, first 64 KiB for Tika) into `BlobStore.store`. `S3BlobStore` buffers exactly one part in memory (8 MiB, or length ÷ 10,000, or 64 MiB for unknown length) and uses a single PutObject when the body fits one part.
 6. Bytes first, record after. Duplicates are decided by Mongo's unique indexes on `(owner, filenameKey)` and `(owner, sha256)` at insert; the loser's bytes are deleted. There is no lock or reservation, by design.
@@ -73,4 +73,4 @@ Spock gotchas met here: `where:` block closures can't read instance fields (pass
 
 ## Docs
 
-Design decisions are recorded, with reasons, in `docs/decisions.md`; research behind them in `docs/design-notes.md`. A change that reverses or adds a decision gets a row in `docs/decisions.md`.
+`docs/decisions.md` and `docs/design-notes.md` (the decision log and the research behind it) are kept locally and git-ignored; code comments such as "Domain decision 5" refer to that log, and the same decisions are restated in the "Decisions" sections of `docs/acceptance-criteria/`.

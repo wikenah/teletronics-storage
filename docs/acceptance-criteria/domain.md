@@ -77,7 +77,7 @@ Decided: **bytes first, record after** (option A).
 - Stream the bytes to storage while computing size and SHA-256, then insert the record. The unique indexes decide duplicates at the insert. On a duplicate: delete the stored bytes and report the conflict.
 - This is what S3, Dropbox, Google Cloud Storage and Microsoft Graph do: conflicts are detected at commit.
 - Known cost: two overlapping uploads of the same name by one user both stream until the end, which can be hours for huge files. The pre-check catches only a name already taken by a completed file.
-- Documented upgrade (C): a separate `upload_reservations` collection with a lease (unique `(ownerId, filenameKey)`, ShedLock-style claim/takeover, heartbeat, release by token, TTL for garbage collection only). It is an efficiency lock in Kleppmann's sense; the unique index on `files` stays the correctness mechanism. Full design in `design-notes.md`.
+- Documented upgrade (C): a separate `upload_reservations` collection with a lease (unique `(ownerId, filenameKey)`, ShedLock-style claim/takeover, heartbeat, release by token, TTL for garbage collection only). It is an efficiency lock in Kleppmann's sense; the unique index on `files` stays the correctness mechanism.
 - Same content: nothing is detected early. Documented upgrade: an optional `Repr-Digest` (RFC 9530) header checked against the user's own files before the body and verified against the computed hash at the end. Safe because it only rejects and only searches the user's own files.
 
 ## Same filename (decision 2)

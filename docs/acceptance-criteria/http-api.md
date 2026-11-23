@@ -2,7 +2,7 @@
 
 Conventions, test levels and the error format: see [README](README.md).
 
-Status: **all endpoints agreed** (upload API-01 to API-24, other endpoints API-25 to API-31). The machine-readable contract is planned as an OpenAPI document; how it is produced is decided at build time (see design-notes, "OpenAPI contract").
+Status: **all endpoints agreed** (upload API-01 to API-24, other endpoints API-25 to API-31). The machine-readable contract is planned as an OpenAPI document; how it is produced is decided at build time.
 
 | Endpoint | Who | Success |
 |---|---|---|

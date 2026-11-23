@@ -115,5 +115,4 @@ GitHub Actions (`.github/workflows/ci.yml`) on every push and pull request: buil
 
 ## More
 
-- [`docs/decisions.md`](docs/decisions.md): each design decision and its reason
 - [`docs/acceptance-criteria/`](docs/acceptance-criteria/README.md): the acceptance criteria the specs are named after

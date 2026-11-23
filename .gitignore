@@ -12,3 +12,7 @@ build/
 # Local tool folders (not part of the project)
 .serena/
 .playwright-mcp/
+
+# Working notes kept locally, not published
+docs/decisions.md
+docs/design-notes.md

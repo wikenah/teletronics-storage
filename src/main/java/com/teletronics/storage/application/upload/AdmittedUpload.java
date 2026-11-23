@@ -38,14 +38,9 @@ public final class AdmittedUpload implements PendingUpload {
     @Override
     public StoredFile complete(InputStream body) {
         StorageKey key = StorageKey.random();
-        OptionalLong declaredLength = command.declaredLength();
         DigestingInputStream digesting = new DigestingInputStream(body, detector.prefixLength());
-        blobs.store(key, digesting, declaredLength);
-        long size = digesting.count();
-        if (declaredLength.isPresent() && declaredLength.getAsLong() != size) {
-            deleteBytes(key, "body shorter than Content-Length");
-            throw new IncompleteUploadException("received " + size + " of " + declaredLength.getAsLong() + " bytes");
-        }
+        blobs.store(key, digesting, command.declaredLength());
+        requireComplete(key, digesting.count());
         StoredFile file = newFile(key, digesting);
         try {
             files.insert(file);
@@ -56,6 +51,15 @@ public final class AdmittedUpload implements PendingUpload {
         } catch (RuntimeException e) {
             deleteBytes(key, "record insert failed");
             throw e;
+        }
+    }
+
+    /** A body that ended before its declared Content-Length is not a file: its bytes are deleted. */
+    private void requireComplete(StorageKey key, long received) {
+        OptionalLong declaredLength = command.declaredLength();
+        if (declaredLength.isPresent() && declaredLength.getAsLong() != received) {
+            deleteBytes(key, "body shorter than Content-Length");
+            throw new IncompleteUploadException("received " + received + " of " + declaredLength.getAsLong() + " bytes");
         }
     }
 

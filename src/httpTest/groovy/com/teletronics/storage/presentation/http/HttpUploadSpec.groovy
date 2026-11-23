@@ -91,7 +91,7 @@ class HttpUploadSpec extends Specification {
         given: "the file service reports, before the body is read, that alice already has a file E named \"report.pdf\""
         def existing = StoredFiles.file("alice", "report.pdf")
         def pending = Mock(PendingUpload)
-        files.startUpload(_) >> { throw new DuplicateFileException(DuplicateFileException.Kind.FILENAME, existing) }
+        files.startUpload(_) >> { throw existing.alreadyExists(DuplicateFileException.Kind.FILENAME) }
 
         and: "the client sends Expect: 100-continue and waits"
         def client = new RawHttpClient(port)

@@ -38,7 +38,7 @@ There is no linter or formatter configured. CI (`.github/workflows/ci.yml`) runs
 DDD layers under `com.teletronics.storage`. The dependency rule is a convention, not enforced by a tool: `domain` depends on nothing (no Spring, no Mongo); `application` depends on `domain`; `presentation` and `infrastructure` depend on both.
 
 - `domain/file`: the `StoredFile` aggregate and its `FileRepository` port at the top; `valueobject/` (self-validating: `Filename`, `Tags`, `OwnerId`, `FileId`, `DownloadToken`, …), `query/` (`FileQuery`, `SortField`, `PageResult`), `exception/`. Invalid input throws `InvalidFileException(field, message)`.
-- `application`: `FileService` (all use cases) and `Download`; `upload/` (the upload command, the pending upload, the memory budget, the hashing stream); `port/` (the outbound interfaces `BlobStore`, `ContentTypeDetector`); `exception/`. `FileService` is a `@Service` and `UploadBudget` a `@Component` (its size comes from `uploads.buffer-budget-mib`); nothing else in this layer uses Spring.
+- `application`: `FileService` (all use cases) and `Download`; `upload/` (the upload command, `AdmittedUpload` (which carries out an upload once it is admitted), the memory budget, the hashing stream); `port/` (the outbound interfaces `BlobStore`, `ContentTypeDetector`); `exception/`. `FileService` is a `@Service` and `UploadBudget` a `@Component` (its size comes from `uploads.buffer-budget-mib`); nothing else in this layer uses Spring.
 - `presentation/http`: `FilesController`, request parsers (`request/`), response DTOs (`response/`), `ProblemDetailsAdvice` mapping every exception to RFC 9457 Problem Details (`problem/`), the HTTP layer's own exceptions (`exception/`).
 - `infrastructure`: `persistence/mongo` (MongoOperations, not Spring Data repositories), `storage/s3` (AWS SDK v2 with the apache5 client), `detection` (Tika).
 
@@ -57,7 +57,7 @@ The design goal is uploads of any size inside a 1 GB container, with rejections 
 
 - Another user's file is always 404, never 403. An unparseable id or token is also 404.
 - Problem `type` values are in `ProblemTypes`. Spring 7 omits `type` when it is `about:blank`, so tests default it.
-- The download link is built in the presentation layer (`FilesController.DOWNLOAD_PATH` + token); the domain doesn't know URLs or header names.
+- The download link is built in the presentation layer (`FileResponse.DOWNLOAD_PATH` + token); the domain doesn't know URLs or header names.
 - `uploadedAt` is truncated to milliseconds so every store returns the same value.
 - The 200 MB disk limit is met by never spooling to disk: don't introduce temp files or multipart parsing on the upload or download path.
 

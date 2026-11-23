@@ -1,27 +1,21 @@
 package com.teletronics.storage.domain.file.exception;
 
-import com.teletronics.storage.domain.file.StoredFile;
-
 /**
- * The owner already has a file with this name or this content. Carries the existing file so the
- * caller can recognise it (size, SHA-256).
+ * The owner already has a file with this name or this content. Carries what identifies the existing file
+ * (id, size, SHA-256) so the caller can recognise it.
  */
 public class DuplicateFileException extends RuntimeException {
 
     public enum Kind { FILENAME, CONTENT }
 
+    /** The file that is already there, as plain values: this package depends on nothing else. */
+    public record Existing(String id, long size, String sha256) {
+    }
+
     private final Kind kind;
-    private final StoredFile existing;
+    private final Existing existing;
 
-    public static DuplicateFileException filename(StoredFile existing) {
-        return new DuplicateFileException(Kind.FILENAME, existing);
-    }
-
-    public static DuplicateFileException content(StoredFile existing) {
-        return new DuplicateFileException(Kind.CONTENT, existing);
-    }
-
-    public DuplicateFileException(Kind kind, StoredFile existing) {
+    public DuplicateFileException(Kind kind, Existing existing) {
         super(kind == Kind.FILENAME ? "filename already exists" : "content already exists");
         this.kind = kind;
         this.existing = existing;
@@ -31,7 +25,7 @@ public class DuplicateFileException extends RuntimeException {
         return kind;
     }
 
-    public StoredFile existing() {
+    public Existing existing() {
         return existing;
     }
 }

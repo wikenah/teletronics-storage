@@ -266,7 +266,7 @@ class FilesControllerSpec extends Specification {
     def "API-15 duplicate detected after the body was read (#kind)"() {
         given: "the file service reports, after reading the body, that alice already has a file E with the same #kind"
         def existing = StoredFiles.file("alice", "report.pdf")
-        def pending = Mock(PendingUpload) { complete(_) >> { throw new DuplicateFileException(kind, existing) } }
+        def pending = Mock(PendingUpload) { complete(_) >> { throw existing.alreadyExists(kind) } }
         files.startUpload(_) >> pending
 
         when: "the upload completes"
@@ -288,7 +288,7 @@ class FilesControllerSpec extends Specification {
     def "API-15 filename taken at the pre-check is a 409 too"() {
         given: "the file service reports before the body that the name is taken"
         def existing = StoredFiles.file("alice", "report.pdf")
-        files.startUpload(_) >> { throw new DuplicateFileException(DuplicateFileException.Kind.FILENAME, existing) }
+        files.startUpload(_) >> { throw existing.alreadyExists(DuplicateFileException.Kind.FILENAME) }
 
         when:
         def response = perform(upload())
@@ -421,7 +421,7 @@ class FilesControllerSpec extends Specification {
         description                     | contentType        | body                                         | newName     | failure                                                                         || calls | status | type
         "a new name"                    | "application/json" | '{"filename": "new.pdf"}'                    | "new.pdf"   | null                                                                            || 1     | 200    | null
         "a name the domain rejects"     | "application/json" | '{"filename": "a/b.pdf"}'                    | "a/b.pdf"   | new InvalidFileException("filename", "filename must not contain '/'")          || 1     | 400    | "/problems/invalid-request"
-        "a name that is taken"          | "application/json" | '{"filename": "taken.pdf"}'                  | "taken.pdf" | new DuplicateFileException(DuplicateFileException.Kind.FILENAME, StoredFiles.file("alice", "taken.pdf")) || 1 | 409 | "/problems/filename-exists"
+        "a name that is taken"          | "application/json" | '{"filename": "taken.pdf"}'                  | "taken.pdf" | StoredFiles.file("alice", "taken.pdf").alreadyExists(DuplicateFileException.Kind.FILENAME) || 1 | 409 | "/problems/filename-exists"
         "a file that isn't hers"        | "application/json" | '{"filename": "new.pdf"}'                    | "new.pdf"   | new FileNotFoundException()                                                     || 1     | 404    | "/problems/file-not-found"
         "only tags"                     | "application/json" | '{"tags": ["x"]}'                            | _           | null                                                                            || 0     | 400    | "/problems/invalid-request"
         "a name and a visibility"       | "application/json" | '{"filename": "x", "visibility": "PUBLIC"}'  | _           | null                                                                            || 0     | 400    | "/problems/invalid-request"
@@ -434,7 +434,7 @@ class FilesControllerSpec extends Specification {
     def "API-26 the existing file comes with a rename conflict"() {
         given:
         def existing = StoredFiles.file("alice", "taken.pdf")
-        files.rename(_, _, _) >> { throw new DuplicateFileException(DuplicateFileException.Kind.FILENAME, existing) }
+        files.rename(_, _, _) >> { throw existing.alreadyExists(DuplicateFileException.Kind.FILENAME) }
 
         when:
         def response = perform(patch("/files/x").header("X-User-Id", "alice")
@@ -557,7 +557,8 @@ class FilesControllerSpec extends Specification {
         json(response).keySet() == ["items", "page", "size", "totalItems", "totalPages"] as Set
 
         and: "the query is the public listing whoever asks"
-        query.isPublicListing()
+        query.owner().isEmpty()
+        query.visibility().map { it.name() } == Optional.of("PUBLIC")
         query.sortField() == SortField.FILENAME && query.ascending()
 
         where:

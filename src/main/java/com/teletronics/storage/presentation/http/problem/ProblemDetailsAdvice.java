@@ -4,7 +4,6 @@ import com.teletronics.storage.application.exception.FileTooLargeException;
 import com.teletronics.storage.application.exception.IncompleteUploadException;
 import com.teletronics.storage.application.exception.StorageUnavailableException;
 import com.teletronics.storage.application.exception.UploadCapacityReachedException;
-import com.teletronics.storage.domain.file.StoredFile;
 import com.teletronics.storage.domain.file.exception.DuplicateFileException;
 import com.teletronics.storage.domain.file.exception.FileNotFoundException;
 import com.teletronics.storage.domain.file.exception.InvalidFileException;
@@ -134,11 +133,11 @@ public class ProblemDetailsAdvice extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(problem.getStatus()).body(problem);
     }
 
-    private static Map<String, Object> existingFile(StoredFile file) {
+    private static Map<String, Object> existingFile(DuplicateFileException.Existing file) {
         Map<String, Object> existing = new LinkedHashMap<>();
-        existing.put("id", file.id().value());
+        existing.put("id", file.id());
         existing.put("size", file.size());
-        existing.put("sha256", file.sha256().hex());
+        existing.put("sha256", file.sha256());
         return existing;
     }
 }

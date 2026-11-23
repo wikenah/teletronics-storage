@@ -11,7 +11,6 @@ import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.domain.file.valueobject.OwnerId;
 import com.teletronics.storage.domain.file.valueobject.Sha256;
-import com.teletronics.storage.domain.file.valueobject.Visibility;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.TransientDataAccessException;
@@ -81,9 +80,9 @@ public class MongoFileRepository implements FileRepository {
 
     @Override
     public PageResult<StoredFile> find(FileQuery query) {
-        Criteria criteria = query.owner()
-                .map(owner -> where(FileDocument.OWNER_ID).is(owner.value()))
-                .orElseGet(() -> where(FileDocument.VISIBILITY).is(Visibility.PUBLIC.name()));
+        Criteria criteria = new Criteria();
+        query.owner().ifPresent(owner -> criteria.and(FileDocument.OWNER_ID).is(owner.value()));
+        query.visibility().ifPresent(visibility -> criteria.and(FileDocument.VISIBILITY).is(visibility.name()));
         query.tag().ifPresent(tag -> criteria.and(FileDocument.TAGS).is(tag.value()));
 
         return call(() -> {

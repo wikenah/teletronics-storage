@@ -2,42 +2,33 @@ package com.teletronics.storage.application;
 
 import com.teletronics.storage.application.exception.BlobNotFoundException;
 import com.teletronics.storage.application.exception.FileTooLargeException;
-import com.teletronics.storage.application.exception.IncompleteUploadException;
 import com.teletronics.storage.application.exception.RecordWithoutBytesException;
 import com.teletronics.storage.application.exception.UploadCapacityReachedException;
 import com.teletronics.storage.application.port.BlobStore;
 import com.teletronics.storage.application.port.ContentTypeDetector;
-import com.teletronics.storage.application.upload.DigestingInputStream;
+import com.teletronics.storage.application.upload.AdmittedUpload;
 import com.teletronics.storage.application.upload.PendingUpload;
 import com.teletronics.storage.application.upload.UploadBudget;
 import com.teletronics.storage.application.upload.UploadCommand;
 import com.teletronics.storage.domain.file.FileRepository;
 import com.teletronics.storage.domain.file.StoredFile;
-import com.teletronics.storage.domain.file.exception.DuplicateFileException;
+import com.teletronics.storage.domain.file.exception.DuplicateFileException.Kind;
 import com.teletronics.storage.domain.file.exception.FileNotFoundException;
 import com.teletronics.storage.domain.file.exception.RepositoryDuplicateException;
 import com.teletronics.storage.domain.file.query.FileQuery;
 import com.teletronics.storage.domain.file.query.PageResult;
-import com.teletronics.storage.domain.file.valueobject.ContentType;
 import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.domain.file.valueobject.Filename;
 import com.teletronics.storage.domain.file.valueobject.OwnerId;
-import com.teletronics.storage.domain.file.valueobject.StorageKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
 import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Optional;
-import java.util.OptionalLong;
 
 /**
- * The file use cases. Bytes first, record after: the unique indexes decide duplicates at insert,
- * and bytes without a record are garbage (Domain decisions 1 and 5).
+ * The file use cases. The upload itself, once admitted, is carried out by {@link AdmittedUpload}.
  */
 @Service
 public class FileService {
@@ -73,13 +64,13 @@ public class FileService {
                 .orElseThrow(UploadCapacityReachedException::new);
         try {
             files.findByOwnerAndFilenameKey(command.owner(), command.filename().key()).ifPresent(existing -> {
-                throw DuplicateFileException.filename(existing);
+                throw existing.alreadyExists(Kind.FILENAME);
             });
         } catch (RuntimeException e) {
             reservation.close();
             throw e;
         }
-        return new AdmittedUpload(command, reservation);
+        return new AdmittedUpload(files, blobs, detector, clock, command, reservation);
     }
 
     public StoredFile get(OwnerId owner, FileId id) {
@@ -100,7 +91,7 @@ public class FileService {
         } catch (RepositoryDuplicateException e) {
             throw files.findByOwnerAndFilenameKey(owner, filename.key())
                     .filter(existing -> !existing.id().equals(id))
-                    .map(DuplicateFileException::filename)
+                    .map(existing -> existing.alreadyExists(Kind.FILENAME))
                     .orElseThrow(() -> e);
         }
         return renamed;
@@ -112,7 +103,11 @@ public class FileService {
         if (!files.delete(file.id())) {
             throw new FileNotFoundException();
         }
-        deleteBytesOrLogOrphan(file.storageKey(), "file deleted");
+        try {
+            blobs.delete(file.storageKey());
+        } catch (RuntimeException e) {
+            log.error("orphaned bytes (file deleted): storage key {} could not be deleted", file.storageKey().value(), e);
+        }
     }
 
     public PageResult<StoredFile> list(FileQuery query) {
@@ -128,74 +123,6 @@ public class FileService {
         } catch (BlobNotFoundException e) {
             log.error("record without bytes: file {} storage key {}", file.id().value(), file.storageKey().value());
             throw new RecordWithoutBytesException("record without bytes", e);
-        }
-    }
-
-    /** Millisecond precision, the precision MongoDB stores dates with, so every store returns the same value. */
-    private Instant uploadedAt() {
-        return clock.instant().truncatedTo(ChronoUnit.MILLIS);
-    }
-
-    private void deleteBytesOrLogOrphan(StorageKey key, String reason) {
-        try {
-            blobs.delete(key);
-        } catch (RuntimeException e) {
-            log.error("orphaned bytes ({}): storage key {} could not be deleted", reason, key.value(), e);
-        }
-    }
-
-    private final class AdmittedUpload implements PendingUpload {
-
-        private final UploadCommand command;
-        private final UploadBudget.Reservation reservation;
-
-        private AdmittedUpload(UploadCommand command, UploadBudget.Reservation reservation) {
-            this.command = command;
-            this.reservation = reservation;
-        }
-
-        @Override
-        public StoredFile complete(InputStream body) {
-            StorageKey key = StorageKey.random();
-            OptionalLong declaredLength = command.declaredLength();
-            DigestingInputStream digesting = new DigestingInputStream(body, detector.prefixLength());
-            blobs.store(key, digesting, declaredLength);
-            long size = digesting.count();
-            if (declaredLength.isPresent() && declaredLength.getAsLong() != size) {
-                deleteBytesOrLogOrphan(key, "body shorter than Content-Length");
-                throw new IncompleteUploadException("received " + size + " of " + declaredLength.getAsLong() + " bytes");
-            }
-            ContentType contentType = command.declaredContentType()
-                    .filter(type -> !type.isGeneric())
-                    .orElseGet(() -> detector.detect(digesting.prefix(), command.filename()));
-            StoredFile file = StoredFile.create(command.owner(), command.filename(), command.visibility(),
-                    command.tags(), size, digesting.sha256(), contentType, uploadedAt(), key);
-            try {
-                files.insert(file);
-                return file;
-            } catch (RepositoryDuplicateException e) {
-                deleteBytesOrLogOrphan(key, "lost a duplicate race");
-                throw duplicateOf(file, e);
-            } catch (RuntimeException e) {
-                deleteBytesOrLogOrphan(key, "record insert failed");
-                throw e;
-            }
-        }
-
-        /** Name wins over content, the same order as the pre-check (Domain decision 5). */
-        private RuntimeException duplicateOf(StoredFile file, RepositoryDuplicateException cause) {
-            Optional<StoredFile> byName = files.findByOwnerAndFilenameKey(file.owner(), file.filename().key());
-            if (byName.isPresent()) {
-                return DuplicateFileException.filename(byName.get());
-            }
-            return files.findByOwnerAndSha256(file.owner(), file.sha256())
-                    .<RuntimeException>map(DuplicateFileException::content)
-                    .orElse(cause);
-        }
-
-        @Override
-        public void close() {
-            reservation.close();
         }
     }
 }

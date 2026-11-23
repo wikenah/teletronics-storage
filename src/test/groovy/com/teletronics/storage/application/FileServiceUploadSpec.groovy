@@ -70,9 +70,9 @@ class FileServiceUploadSpec extends Specification {
         then: "the answer is \"taken\", with the existing file's id, size and SHA-256"
         def e = thrown(DuplicateFileException)
         e.kind() == DuplicateFileException.Kind.FILENAME
-        e.existing().id() == existing.id()
+        e.existing().id() == existing.id().value()
         e.existing().size() == existing.size()
-        e.existing().sha256() == existing.sha256()
+        e.existing().sha256() == existing.sha256().hex()
 
         and: "no bytes are stored beyond the existing file's, and no memory stays reserved"
         blobs.keys().size() == 1
@@ -91,7 +91,7 @@ class FileServiceUploadSpec extends Specification {
         then: "the second is rejected as filename-exists"
         def e = thrown(DuplicateFileException)
         e.kind() == DuplicateFileException.Kind.FILENAME
-        e.existing().id() == winner.id()
+        e.existing().id() == winner.id().value()
 
         and: "exactly one record named \"report.pdf\" exists for alice"
         repository.count() == 1
@@ -115,7 +115,7 @@ class FileServiceUploadSpec extends Specification {
         then: "the second is rejected as content-exists"
         def e = thrown(DuplicateFileException)
         e.kind() == DuplicateFileException.Kind.CONTENT
-        e.existing().id() == winner.id()
+        e.existing().id() == winner.id().value()
 
         and: "exactly one record with content C exists, and the loser's bytes are gone"
         repository.count() == 1
@@ -220,8 +220,8 @@ class FileServiceUploadSpec extends Specification {
 
         then: "it is rejected as filename-exists with the existing file's id, size and SHA-256"
         def e = thrown(DuplicateFileException)
-        e.existing().id() == original.id()
-        e.existing().sha256() == original.sha256()
+        e.existing().id() == original.id().value()
+        e.existing().sha256() == original.sha256().hex()
 
         and: "alice still has exactly one file"
         repository.count() == 1

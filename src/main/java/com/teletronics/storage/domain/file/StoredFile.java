@@ -1,5 +1,6 @@
 package com.teletronics.storage.domain.file;
 
+import com.teletronics.storage.domain.file.exception.DuplicateFileException;
 import com.teletronics.storage.domain.file.valueobject.ContentType;
 import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
@@ -51,6 +52,12 @@ public record StoredFile(
                                     Sha256 sha256, ContentType contentType, Instant uploadedAt, StorageKey storageKey) {
         return new StoredFile(FileId.newId(), owner, filename, visibility, tags, size, sha256, contentType,
                 uploadedAt, DownloadToken.generate(), storageKey);
+    }
+
+    /** The refusal of an upload or rename that would duplicate this file, by name or by content. */
+    public DuplicateFileException alreadyExists(DuplicateFileException.Kind kind) {
+        return new DuplicateFileException(kind,
+                new DuplicateFileException.Existing(id.value(), size, sha256.hex()));
     }
 
     public boolean isOwnedBy(OwnerId candidate) {

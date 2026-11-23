@@ -43,8 +43,6 @@ public class FilesController {
 
     private static final String FILES = "/files";
 
-    public static final String DOWNLOAD_PATH = "/download/";
-
     private final FileService files;
 
     public FilesController(FileService files) {
@@ -88,7 +86,7 @@ public class FilesController {
         return PageResponse.of(files.list(ListParamsParser.parse(request, FileQuery.publicFiles())));
     }
 
-    @GetMapping(DOWNLOAD_PATH + "{token}")
+    @GetMapping(FileResponse.DOWNLOAD_PATH + "{token}")
     public void download(@PathVariable String token, HttpServletResponse response) throws IOException {
         Download download = files.openDownload(token);
         try (InputStream body = download.body()) {

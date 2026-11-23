@@ -49,8 +49,18 @@ public class DigestingInputStream extends FilterInputStream {
     }
 
     @Override
-    public long skip(long n) {
-        throw new UnsupportedOperationException("skipping would bypass the digest");
+    public long skip(long n) throws IOException {
+        // Skipped bytes still belong to the file: read and discard them so the digest and count stay right.
+        byte[] discarded = new byte[(int) Math.min(Math.max(n, 0), 8192)];
+        long skipped = 0;
+        while (skipped < n) {
+            int read = read(discarded, 0, (int) Math.min(discarded.length, n - skipped));
+            if (read < 0) {
+                break;
+            }
+            skipped += read;
+        }
+        return skipped;
     }
 
     @Override

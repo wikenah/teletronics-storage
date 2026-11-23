@@ -1,7 +1,6 @@
 package com.teletronics.storage.presentation.http.response;
 
 import com.teletronics.storage.domain.file.StoredFile;
-import com.teletronics.storage.presentation.http.FilesController;
 
 import java.time.Instant;
 import java.util.List;
@@ -20,6 +19,9 @@ public record FileResponse(
         Instant uploadedAt,
         String downloadLink) {
 
+    /** A file's download link is this path plus its token, relative to the service as the brief asks. */
+    public static final String DOWNLOAD_PATH = "/download/";
+
     public static FileResponse of(StoredFile file) {
         return new FileResponse(
                 file.id().value(),
@@ -30,6 +32,6 @@ public record FileResponse(
                 file.sha256().hex(),
                 file.contentType().value(),
                 file.uploadedAt(),
-                FilesController.DOWNLOAD_PATH + file.downloadToken().value());
+                DOWNLOAD_PATH + file.downloadToken().value());
     }
 }

@@ -77,7 +77,7 @@ class FileServiceMongoSpec extends Specification {
         winners.size() == 1
         losers.size() == 1
         losers[0].kind() == DuplicateFileException.Kind.FILENAME
-        losers[0].existing().id() == winners[0].id()
+        losers[0].existing().id() == winners[0].id().value()
 
         and: "exactly one record named \"report.pdf\" exists for alice"
         mongo.count(Query.query(where("ownerId").is("alice").and("filenameKey").is("report.pdf")), "files") == 1
@@ -102,7 +102,7 @@ class FileServiceMongoSpec extends Specification {
         winners.size() == 1
         losers.size() == 1
         losers[0].kind() == DuplicateFileException.Kind.CONTENT
-        losers[0].existing().id() == winners[0].id()
+        losers[0].existing().id() == winners[0].id().value()
 
         and: "exactly one record with content C exists for alice"
         mongo.count(Query.query(where("ownerId").is("alice").and("sha256").is(winners[0].sha256().hex())), "files") == 1

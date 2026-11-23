@@ -9,7 +9,6 @@ import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.domain.file.valueobject.OwnerId;
 import com.teletronics.storage.domain.file.valueobject.Sha256;
-import com.teletronics.storage.domain.file.valueobject.Visibility;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -94,7 +93,8 @@ public class InMemoryFileRepository implements FileRepository {
     @Override
     public synchronized PageResult<StoredFile> find(FileQuery query) {
         List<StoredFile> matching = new ArrayList<>(files.values().stream()
-                .filter(f -> query.owner().map(o -> f.owner().equals(o)).orElse(f.visibility() == Visibility.PUBLIC))
+                .filter(f -> query.owner().map(o -> f.owner().equals(o)).orElse(true))
+                .filter(f -> query.visibility().map(v -> f.visibility() == v).orElse(true))
                 .filter(f -> query.tag().map(t -> f.tags().values().contains(t.value())).orElse(true))
                 .toList());
         Comparator<StoredFile> order = comparator(query);

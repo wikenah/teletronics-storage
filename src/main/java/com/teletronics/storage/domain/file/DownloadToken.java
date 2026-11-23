@@ -32,9 +32,4 @@ public record DownloadToken(String value) {
                 ? Optional.of(new DownloadToken(value))
                 : Optional.empty();
     }
-
-    /** The link, relative to the service, as the brief asks. */
-    public String link() {
-        return "/download/" + value;
-    }
 }

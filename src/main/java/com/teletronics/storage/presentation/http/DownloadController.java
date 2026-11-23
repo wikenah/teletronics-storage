@@ -22,13 +22,16 @@ import java.nio.charset.StandardCharsets;
 @RestController
 public class DownloadController {
 
+    /** The download route. A file's link is this path plus its token, relative to the service as the brief asks. */
+    public static final String PATH = "/download/";
+
     private final FileService files;
 
     public DownloadController(FileService files) {
         this.files = files;
     }
 
-    @GetMapping("/download/{token}")
+    @GetMapping(PATH + "{token}")
     public void download(@PathVariable String token, HttpServletResponse response) throws IOException {
         Download download = files.openDownload(token);
         try (InputStream body = download.body()) {

@@ -351,7 +351,7 @@ class FileServiceUploadSpec extends Specification {
 
         where:
         field        | owner   | filename | visibility | tags
-        "X-User-Id"  | " "     | "a.txt"  | "PUBLIC"   | []
+        "owner"      | " "     | "a.txt"  | "PUBLIC"   | []
         "filename"   | "alice" | "a/b"    | "PUBLIC"   | []
         "visibility" | "alice" | "a.txt"  | "public"   | []
         "tags"       | "alice" | "a.txt"  | "PUBLIC"   | ["a,b"]

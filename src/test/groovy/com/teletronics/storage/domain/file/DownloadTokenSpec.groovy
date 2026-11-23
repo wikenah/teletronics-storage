@@ -12,10 +12,7 @@ class DownloadTokenSpec extends Specification {
         def first = DownloadToken.generate()
         def second = DownloadToken.generate()
 
-        then: "each link has the form /download/{token}"
-        first.link() == "/download/" + first.value()
-
-        and: "the two tokens differ"
+        then: "the two tokens differ"
         first != second
 
         and: "each token is 128 random bits written as 22 URL-safe base64 characters"

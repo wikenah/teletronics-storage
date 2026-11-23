@@ -7,7 +7,7 @@ public record OwnerId(String value) {
 
     public OwnerId {
         if (value == null || value.isBlank()) {
-            throw new InvalidFileException("X-User-Id", "user id must not be blank");
+            throw new InvalidFileException("owner", "user id must not be blank");
         }
     }
 

@@ -1,133 +1,99 @@
 # STORAGE
 
-A REST service for storing and sharing files. Built for the Teletronics backend test project.
+A REST API for storing and sharing files.
 
-- Users upload files of any size, from a few KB to hundreds of GB, as PUBLIC or PRIVATE, with up to 5 tags.
-- They can rename, list, filter, sort and delete their own files, and list everyone's public files.
-- Every file gets an unguessable download link that works for anyone holding it.
-- Duplicates are refused per user, by filename (case-insensitive) or by content (SHA-256).
+- Upload a file of any size as PUBLIC or PRIVATE, with up to 5 tags.
+- Rename, list, filter by tag, sort, page and delete your own files; list everyone's PUBLIC files.
+- Every file gets an unguessable download link.
+- Duplicates are refused per user, by filename or by content.
 
-Stack: Java 21, Spring Boot 4.1.3, MongoDB 8.0 for metadata, SeaweedFS (S3-compatible) for the bytes, Apache Tika for type detection, Spock for tests.
+Java 21, Spring Boot 4.1, MongoDB (metadata), SeaweedFS (S3-compatible, file bytes), Apache Tika (type detection), Spock (tests).
 
-## Run it
+## Run
 
 Needs Java 21 and Docker.
 
 ```sh
 ./gradlew bootJar
-docker compose up --build --wait     # app on http://localhost:8080, Mongo, SeaweedFS
+docker compose up --build --wait     # http://localhost:8080
 ```
 
-The app container runs with the brief's limits: 1 GB of memory, with swap equal to memory, so it really is 1 GB.
-
-### Try it with curl
-
-```sh
-# Upload: the raw file is the request body. curl -T streams the file from disk.
-curl -T report.pdf -X POST -H 'Content-Type: application/pdf' -H 'X-User-Id: alice' \
-  'http://localhost:8080/files?filename=report.pdf&visibility=PUBLIC&tags=work&tags=2026'
-
-# My files, filtered and sorted; everyone's public files
-curl -H 'X-User-Id: alice' 'http://localhost:8080/files?tag=work&sort=size,desc&page=0&size=20'
-curl 'http://localhost:8080/files/public?sort=filename,asc'
-
-# Rename, download by link, delete
-curl -X PATCH -H 'X-User-Id: alice' -H 'Content-Type: application/json' \
-  -d '{"filename": "final.pdf"}' http://localhost:8080/files/{id}
-curl -o final.pdf http://localhost:8080/download/{token}
-curl -X DELETE -H 'X-User-Id: alice' http://localhost:8080/files/{id}
-```
-
-Use `curl -T` for large files, not `curl --data-binary @file`: `--data-binary` reads the whole file into memory first. For files over 1 MB curl sends `Expect: 100-continue`, so a rejected upload (name taken, bad parameters) is answered before any of the body is sent.
+The app container is limited to 1 GB of memory, as the brief requires.
 
 ## API
 
-The brief has no user management, so the caller's id comes in the `X-User-Id` header. That is an identification, not authentication.
+There is no user management: the caller's id is sent in the `X-User-Id` header.
 
-| Endpoint | Who | Success |
+| Endpoint | Caller | Success |
 |---|---|---|
-| `POST /files?filename=…&visibility=PUBLIC\|PRIVATE&tags=…` | Owner (`X-User-Id`) | 201 + file, `Location: /files/{id}` |
-| `GET /files/{id}` | Owner | 200 + file |
-| `PATCH /files/{id}` with `{"filename": "…"}` | Owner | 200 + file |
+| `POST /files?filename=…&visibility=PUBLIC\|PRIVATE&tags=…` | Owner | 201, file, `Location` |
+| `GET /files/{id}` | Owner | 200, file |
+| `PATCH /files/{id}` with `{"filename": "…"}` | Owner | 200, file |
 | `DELETE /files/{id}` | Owner | 204 |
-| `GET /files?tag=…&sort=…&page=…&size=…` | Owner | 200 + page |
-| `GET /files/public?tag=…&sort=…&page=…&size=…` | Anyone | 200 + page |
-| `GET /download/{token}` | Anyone with the link | 200 + bytes |
+| `GET /files?tag=…&sort=…&page=…&size=…` | Owner | 200, page of own files |
+| `GET /files/public?tag=…&sort=…&page=…&size=…` | Anyone | 200, page of PUBLIC files |
+| `GET /download/{token}` | Anyone with the link | 200, file bytes |
 
-**Upload**
-- The body is the raw file. Form uploads (`multipart/form-data`, `application/x-www-form-urlencoded`) and compressed bodies are refused with 415.
-- `visibility` is required: exactly `PUBLIC` or `PRIVATE`.
-- `tags` are given as a repeated parameter, at most 5. They are stored lowercase and trimmed.
-- If `Content-Type` is missing or `application/octet-stream`, the type is detected from the content.
-- There is no size limit. The only exception is a file whose parts couldn't fit in the upload memory budget, which is above about 2.4 TiB.
+- **Upload:** the request body is the raw file, not a form. `tags` is a repeated parameter. If `Content-Type` is missing or `application/octet-stream`, the type is detected from the content.
+- **Listing:** `sort` is `filename`, `uploadDate` (default, newest first), `tag`, `contentType` or `size`, plus `,asc` or `,desc`. `page` starts at 0; `size` defaults to 20, maximum 100. `tag` matches one whole tag, ignoring case.
+- **File:** `id`, `filename`, `visibility`, `tags`, `size`, `sha256`, `contentType`, `uploadedAt`, `downloadLink`.
+- **Download link:** `/download/{token}` with a 128-bit random token. It works for PUBLIC and PRIVATE files and survives a rename.
 
-**Listing**
-- `sort` is one of `filename`, `uploadDate` (default, newest first), `tag`, `contentType`, `size`, followed by `,asc` or `,desc`.
-- `page` starts at 0. `size` defaults to 20, maximum 100.
-- `tag` filters by one exact tag, ignoring case.
-
-**Files and links**
-- A file is shown as `id`, `filename`, `visibility`, `tags`, `size`, `sha256`, `contentType`, `uploadedAt` and `downloadLink`. The owner's id is never shown.
-- Another user's file is reported as 404, never 403, so nobody can probe which ids exist.
-- The download link carries a 128-bit random token. It works for PUBLIC and PRIVATE files and survives a rename. Downloads are sent as attachments with `X-Content-Type-Options: nosniff`; the filename travels as `filename*=UTF-8''…`, which browsers use and `curl -J` doesn't.
-
-### Errors
-
-Every error is RFC 9457 Problem Details (`application/problem+json`).
+Errors are RFC 9457 Problem Details (`application/problem+json`):
 
 | Status | `type` | When |
 |---|---|---|
-| 400 | `/problems/invalid-request` (+ `field`) | Missing `X-User-Id`, invalid filename, visibility, tags, sort or paging |
-| 404 | `/problems/file-not-found` | No such file, or not the caller's |
-| 409 | `/problems/filename-exists` (+ `existingFile`) | The user already has a file with this name (case-insensitive) |
-| 409 | `/problems/content-exists` (+ `existingFile`) | The user already has a file with these bytes |
-| 413 | `/problems/file-too-large` | The file could never fit the upload memory budget |
-| 415 | `/problems/unsupported-content-encoding` | A compressed request body (with `Accept-Encoding: identity`) |
-| 415 | `about:blank` | A form upload |
-| 503 | `/problems/upload-capacity-reached` | The upload memory budget is in use; try again later |
-| 503 | `/problems/temporarily-unavailable` | Mongo or the object store is unreachable |
-| 500 | `about:blank` | Anything else; no internal details are exposed |
+| 400 | `/problems/invalid-request` | Missing `X-User-Id`; invalid filename, visibility, tags, sort or paging |
+| 404 | `/problems/file-not-found` | No such file, or it belongs to another user |
+| 409 | `/problems/filename-exists` | The user already has a file with this name (case-insensitive) |
+| 409 | `/problems/content-exists` | The user already has a file with these bytes |
+| 413 | `/problems/file-too-large` | The file can't be stored within the memory budget (above about 2.4 TiB) |
+| 415 | `/problems/unsupported-content-encoding`, `about:blank` | Compressed body; form upload |
+| 503 | `/problems/upload-capacity-reached` | Too many uploads in progress; retry later |
+| 503 | `/problems/temporarily-unavailable` | MongoDB or the object store is unreachable |
 
-`existingFile` holds the existing file's `id`, `size` and `sha256`. A client retrying after a lost response can use it to recognise its own earlier upload.
+## Usage
 
-## How it works
+```sh
+# Upload (-T streams the file from disk)
+curl -T report.pdf -X POST -H 'X-User-Id: alice' -H 'Content-Type: application/pdf' \
+  'http://localhost:8080/files?filename=report.pdf&visibility=PUBLIC&tags=work&tags=2026'
 
-**Uploads stream end to end.** The handler reads the raw request, never `@RequestBody`. Tomcat sends `100 Continue` only when the app first reads the body (`continueResponseTiming=onRead`). Before that point, every check that needs no body runs:
-1. parameters;
-2. the memory budget;
-3. whether the name is taken.
+# List my files; list public files
+curl -H 'X-User-Id: alice' 'http://localhost:8080/files?tag=work&sort=size,desc&page=0&size=20'
+curl 'http://localhost:8080/files/public?sort=filename,asc'
 
-The body then passes through a SHA-256 digest into the object store in parts. One part is buffered in memory, so a failed part can be retried. Parts are 8 MiB, or length ÷ 10,000 for very large files, or 64 MiB when the length is unknown.
+# Rename
+curl -X PATCH -H 'X-User-Id: alice' -H 'Content-Type: application/json' \
+  -d '{"filename": "final.pdf"}' http://localhost:8080/files/{id}
 
-**Duplicates are decided by unique indexes.** The bytes are stored first and the record inserted after. Mongo's unique indexes on `(owner, lowercase filename)` and `(owner, sha256)` reject the second of two parallel uploads, and its stored bytes are deleted. There is no lock and no reservation.
+# Download by link
+curl -o final.pdf http://localhost:8080/download/{token}
 
-**Memory is budgeted.** Upload part buffers share a 256 MiB budget, counted in MiB. An upload that doesn't fit is refused with 503 straight away instead of waiting on a Tomcat thread. The heap is 55% of the container's memory.
+# Delete
+curl -X DELETE -H 'X-User-Id: alice' http://localhost:8080/files/{id}
+```
 
-**Code layout**: DDD layers under `com.teletronics.storage`:
+## Design
 
-| Layer | Contents |
-|---|---|
-| `presentation` | Controllers, request parsing, Problem Details, Tomcat setup |
-| `application` | `FileService` (the use cases), the upload budget, the ports `BlobStore` and `ContentTypeDetector` |
-| `domain` | The `StoredFile` aggregate, value objects (filename, tags, token, …), the `FileRepository` port |
-| `infrastructure` | Mongo repository, S3 blob store, Tika detector, wiring |
-
-`domain` depends on nothing. Switching the object store (RustFS, AWS S3) is configuration only (`storage.s3.*`).
+- **Streaming:** an upload goes from the socket to the object store in parts, with one part (8 MiB) held in memory. Nothing is written to the app's disk.
+- **Early rejection:** parameters, capacity and the filename are checked before the body is read, so a client sending `Expect: 100-continue` (curl does, above 1 MB) is refused before it uploads anything.
+- **Duplicates:** decided by unique MongoDB indexes on `(owner, filename)` and `(owner, sha256)`, so parallel uploads can't both succeed.
+- **Memory:** upload buffers share a 256 MiB budget; an upload that doesn't fit gets 503 instead of queueing.
+- **Disk limit:** "200MB for APPLICATION" is read as what the running app may write, not the image size.
+- **Code:** DDD layers under `com.teletronics.storage`: `presentation`, `application`, `domain`, `infrastructure`.
 
 ## Tests
 
-Spock specifications. Each feature method is named after its acceptance criterion (`DOM-11 …`), with the criterion's Given/When/Then sentences as block labels.
-
-| Suite | What | Run |
+| Suite | Scope | Command |
 |---|---|---|
-| `test` | Domain, file service with in-memory fakes, controllers (`@WebMvcTest`), S3 write loop | `./gradlew test` |
-| `httpTest` | The web layer on a real Tomcat with a 256 MB heap and a raw socket client | `./gradlew httpTest` |
-| `integrationTest` | Mongo 8.0 and SeaweedFS in Testcontainers; the whole app over HTTP | `./gradlew integrationTest` (needs Docker) |
-| `containerTest` | The built Docker image: every scenario of the brief through the API (`BriefScenariosSpec`), and the 2 GB upload under the brief's limits (`LargeUploadSpec`) | see below |
-
-`./gradlew build` runs the first three. The container test needs the image:
+| `test` | Domain, service, controllers | `./gradlew test` |
+| `httpTest` | Web layer on a real Tomcat with a 256 MB heap | `./gradlew httpTest` |
+| `integrationTest` | Whole app with MongoDB and SeaweedFS (Testcontainers) | `./gradlew integrationTest` |
+| `containerTest` | The Docker image under the 1 GB limit | below |
 
 ```sh
+./gradlew build                                                                        # first three suites
 ./gradlew bootJar && docker build -t teletronics-storage:local . && ./gradlew containerTest
 ```
 
@@ -135,37 +101,19 @@ The tests the brief asks for:
 
 | Brief | Spec |
 |---|---|
-| 1.1 Parallel upload, same filename | `[Checklist 1.1]` in `BriefScenariosSpec`; `DOM-11 [BRIEF]` in `FileServiceMongoSpec` and `StorageApplicationSpec` |
-| 1.2 Parallel upload, same content | `[Checklist 1.2]` in `BriefScenariosSpec`; `DOM-12 [BRIEF]` in the same two specs |
-| 1.3 Upload of a file of at least 2 GB | `SYS-01 [BRIEF]` in `LargeUploadSpec` (the image, 1 GB container); `API-18 [BRIEF]` in `HttpUploadSpec` (256 MB heap) |
-| 1.4 Delete a file that doesn't belong to the user | `[Checklist 1.4]` in `BriefScenariosSpec`; `DOM-39 [BRIEF]` in `FileServiceFilesSpec`, `FileServiceMongoSpec`, `StorageApplicationSpec` |
-| 1.5 List all public files | `[Checklist 1.5]` in `BriefScenariosSpec`; `DOM-43 [BRIEF]` in the same three specs |
+| Parallel upload, same filename | `[Checklist 1.1]` in `BriefScenariosSpec`; `DOM-11` in `StorageApplicationSpec` |
+| Parallel upload, same content | `[Checklist 1.2]` in `BriefScenariosSpec`; `DOM-12` in `StorageApplicationSpec` |
+| Upload of at least 2 GB | `SYS-01` in `LargeUploadSpec` (peak memory about 333 MB, 0 bytes written to disk) |
+| Delete a file of another user | `[Checklist 1.4]` in `BriefScenariosSpec`; `DOM-39` in `FileServiceFilesSpec` |
+| List all public files | `[Checklist 1.5]` in `BriefScenariosSpec`; `DOM-43` in `FileServiceFilesSpec` |
 
-`BriefScenariosSpec` goes through the whole brief in its own order and wording: each functional requirement, then checklist items 1 to 7, using only API calls against the shipped image.
-
-The parallel tests are deterministic. Both uploads are held past the name check before either inserts: a barrier in the service-level spec, `Expect: 100-continue` in the HTTP one. The unique index decides the race every run.
-
-## The container limits
-
-- **1 GB memory:** set in `docker-compose.yml` and in the container test, with swap equal to memory. Docker otherwise allows the same amount again as swap. In SYS-01, a 2 GiB upload peaked at about 333 MB of container memory.
-- **200 MB disk "for APPLICATION":** read as the disk the running application may write, not the image size. The `eclipse-temurin:21-jre` base image alone is larger than 200 MB, so no Java image could meet the other reading.
-  - Nothing is spooled to disk: uploads go from the socket to the object store through memory.
-  - SYS-01 measures the container's writable layer before and after the 2 GiB upload: it grew by 0 bytes.
-  - A hard disk quota (`--storage-opt size`) isn't used: it is ignored on Docker Desktop and needs xfs with project quotas on Linux.
+`BriefScenariosSpec` runs every requirement of the brief through the API against the Docker image.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push and pull request:
-1. `./gradlew build`: unit, HTTP and integration tests.
-2. `docker build`: the Docker image.
-3. `./gradlew containerTest` against that image.
+GitHub Actions (`.github/workflows/ci.yml`) on every push and pull request: build and test, build the Docker image, run the container tests against it.
 
-The image is built, not pushed.
+## More
 
-## Documentation
-
-| Document | Contents |
-|---|---|
-| [`docs/decisions.md`](docs/decisions.md) | Every design decision, with the reason |
-| [`docs/acceptance-criteria/`](docs/acceptance-criteria/README.md) | The acceptance criteria per layer (HTTP API, domain, storage, system) |
-| [`docs/design-notes.md`](docs/design-notes.md) | Research behind the decisions |
+- [`docs/decisions.md`](docs/decisions.md): each design decision and its reason
+- [`docs/acceptance-criteria/`](docs/acceptance-criteria/README.md): the acceptance criteria the specs are named after

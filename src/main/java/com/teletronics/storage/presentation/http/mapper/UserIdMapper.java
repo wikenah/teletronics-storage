@@ -1,6 +1,6 @@
 package com.teletronics.storage.presentation.http.mapper;
 
-import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.UserId;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 
@@ -9,11 +9,11 @@ import lombok.experimental.UtilityClass;
  * Expects a request that UserIdValidator has accepted.
  */
 @UtilityClass
-public class OwnerIdMapper {
+public class UserIdMapper {
 
     public static final String HEADER = "X-User-Id";
 
-    public static OwnerId toOwnerId(HttpServletRequest request) {
-        return OwnerId.of(request.getHeader(HEADER));
+    public static UserId toUserId(HttpServletRequest request) {
+        return UserId.of(request.getHeader(HEADER));
     }
 }

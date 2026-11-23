@@ -5,7 +5,7 @@ import com.teletronics.storage.domain.file.valueobject.ContentType;
 import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.domain.file.valueobject.Filename;
-import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.UserId;
 import com.teletronics.storage.domain.file.valueobject.Sha256;
 import com.teletronics.storage.domain.file.valueobject.StorageKey;
 import com.teletronics.storage.domain.file.valueobject.Tags;
@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 public record StoredFile(
         FileId id,
-        OwnerId owner,
+        UserId owner,
         Filename filename,
         Visibility visibility,
         Tags tags,
@@ -48,7 +48,7 @@ public record StoredFile(
     }
 
     /** A newly stored file: the domain gives it its identity and its download token. */
-    public static StoredFile create(OwnerId owner, Filename filename, Visibility visibility, Tags tags, long size,
+    public static StoredFile create(UserId owner, Filename filename, Visibility visibility, Tags tags, long size,
                                     Sha256 sha256, ContentType contentType, Instant uploadedAt, StorageKey storageKey) {
         return new StoredFile(FileId.newId(), owner, filename, visibility, tags, size, sha256, contentType,
                 uploadedAt, DownloadToken.generate(), storageKey);
@@ -60,7 +60,7 @@ public record StoredFile(
                 new DuplicateFileException.Existing(id.value(), size, sha256.hex()));
     }
 
-    public boolean isOwnedBy(OwnerId candidate) {
+    public boolean isOwnedBy(UserId candidate) {
         return owner.equals(candidate);
     }
 

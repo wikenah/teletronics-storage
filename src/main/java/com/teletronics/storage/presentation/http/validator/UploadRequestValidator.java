@@ -9,21 +9,21 @@ import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 
 /**
- * Rejects the upload requests only HTTP can judge: form bodies, compressed bodies and a missing
- * X-User-Id header (API-01, API-05, API-24).
- * It reads headers only. It must run before anything reads a request parameter: for a form-urlencoded
- * POST, reading parameters would consume the body.
+ * Rejects the upload requests only HTTP can judge: form bodies, compressed bodies and a missing X-User-Id
+ * header (API-01, API-05, API-24). It reads headers only, and must run before anything reads a request
+ * parameter: for a form-urlencoded POST, reading parameters would consume the body.
  */
 @UtilityClass
 public class UploadRequestValidator {
 
+    /** The order is part of the API: a form body is refused before anything else is looked at. */
     public static void validate(HttpServletRequest request) {
-        rejectFormBodies(request.getContentType());
-        rejectCompressedBodies(request.getHeader("Content-Encoding"));
+        rejectFormBody(request.getContentType());
+        rejectCompressedBody(request.getHeader("Content-Encoding"));
         UserIdValidator.validate(request);
     }
 
-    private static void rejectFormBodies(String contentType) {
+    private static void rejectFormBody(String contentType) {
         if (contentType == null || contentType.isBlank()) {
             return;
         }
@@ -38,7 +38,7 @@ public class UploadRequestValidator {
         }
     }
 
-    private static void rejectCompressedBodies(String encoding) {
+    private static void rejectCompressedBody(String encoding) {
         if (encoding != null && !encoding.isBlank() && !encoding.trim().equalsIgnoreCase("identity")) {
             throw new UnsupportedContentEncodingException(encoding.trim());
         }

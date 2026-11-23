@@ -20,7 +20,7 @@ public class UploadCommandMapper {
         String[] tags = request.getParameterValues("tags");
         long length = request.getContentLengthLong();
         return UploadCommand.of(
-                request.getHeader(OwnerIdMapper.HEADER),
+                request.getHeader(UserIdMapper.HEADER),
                 request.getParameter("filename"),
                 request.getParameter("visibility"),
                 tags == null ? List.of() : List.of(tags),

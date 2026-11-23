@@ -5,7 +5,7 @@ import com.teletronics.storage.domain.file.valueobject.ContentType;
 import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.domain.file.valueobject.Filename;
-import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.UserId;
 import com.teletronics.storage.domain.file.valueobject.Sha256;
 import com.teletronics.storage.domain.file.valueobject.StorageKey;
 import com.teletronics.storage.domain.file.valueobject.Tags;
@@ -72,7 +72,7 @@ record FileDocument(
     StoredFile toDomain() {
         return new StoredFile(
                 new FileId(id),
-                OwnerId.of(ownerId),
+                UserId.of(ownerId),
                 Filename.of(filename),
                 Visibility.valueOf(visibility),
                 Tags.of(tags == null ? List.of() : tags),

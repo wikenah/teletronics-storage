@@ -10,7 +10,7 @@ import com.teletronics.storage.domain.file.exception.DuplicateFileException
 import com.teletronics.storage.domain.file.exception.InvalidFileException
 import com.teletronics.storage.domain.file.exception.RepositoryUnavailableException
 import com.teletronics.storage.domain.file.query.FileQuery
-import com.teletronics.storage.domain.file.valueobject.OwnerId
+import com.teletronics.storage.domain.file.valueobject.UserId
 import com.teletronics.storage.domain.file.valueobject.StorageKey
 import com.teletronics.storage.testing.FixedContentTypeDetector
 import com.teletronics.storage.testing.InMemoryBlobStore
@@ -196,8 +196,8 @@ class FileServiceUploadSpec extends Specification {
 
         where:
         action                 | change                                                                 || result
-        "deletes the file"     | { s, f -> s.delete(OwnerId.of("alice"), f.id()) }                      || "accepted"
-        "renames the file"     | { s, f -> s.rename(OwnerId.of("alice"), f.id(), "renamed.txt") }       || "rejected"
+        "deletes the file"     | { s, f -> s.delete(UserId.of("alice"), f.id()) }                      || "accepted"
+        "renames the file"     | { s, f -> s.rename(UserId.of("alice"), f.id(), "renamed.txt") }       || "rejected"
     }
 
     def "DOM-19 the same filename for different users never conflicts"() {
@@ -208,7 +208,7 @@ class FileServiceUploadSpec extends Specification {
         def bobs = upload("bob", "report.pdf", "bob's".bytes)
 
         then: "the upload is accepted"
-        bobs.owner() == OwnerId.of("bob")
+        bobs.owner() == UserId.of("bob")
     }
 
     def "DOM-20 a retried upload never creates a second file"() {
@@ -232,7 +232,7 @@ class FileServiceUploadSpec extends Specification {
         def pending = service.startUpload(command("alice", "big.bin"))
 
         when: "alice lists her files"
-        def page = service.list(FileQuery.ownedBy(OwnerId.of("alice")))
+        def page = service.list(FileQuery.ownedBy(UserId.of("alice")))
 
         then: "\"big.bin\" is not listed"
         page.items().isEmpty()
@@ -355,7 +355,7 @@ class FileServiceUploadSpec extends Specification {
 
         where:
         field        | owner   | filename | visibility | tags
-        "owner"      | " "     | "a.txt"  | "PUBLIC"   | []
+        "userId"     | " "     | "a.txt"  | "PUBLIC"   | []
         "filename"   | "alice" | "a/b"    | "PUBLIC"   | []
         "visibility" | "alice" | "a.txt"  | "public"   | []
         "tags"       | "alice" | "a.txt"  | "PUBLIC"   | ["a,b"]

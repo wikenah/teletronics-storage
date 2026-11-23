@@ -5,7 +5,7 @@ import com.teletronics.storage.domain.file.query.FileQuery;
 import com.teletronics.storage.domain.file.query.PageResult;
 import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
-import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.UserId;
 import com.teletronics.storage.domain.file.valueobject.Sha256;
 
 import java.util.Optional;
@@ -18,9 +18,9 @@ public interface FileRepository {
 
     Optional<StoredFile> findById(FileId id);
 
-    Optional<StoredFile> findByOwnerAndFilenameKey(OwnerId owner, String filenameKey);
+    Optional<StoredFile> findByOwnerAndFilenameKey(UserId owner, String filenameKey);
 
-    Optional<StoredFile> findByOwnerAndSha256(OwnerId owner, Sha256 sha256);
+    Optional<StoredFile> findByOwnerAndSha256(UserId owner, Sha256 sha256);
 
     Optional<StoredFile> findByDownloadToken(DownloadToken token);
 

@@ -21,7 +21,7 @@ import com.teletronics.storage.domain.file.query.PageResult;
 import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.domain.file.valueobject.Filename;
-import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -55,7 +55,7 @@ public class FileService {
         UploadBudget.Reservation reservation = budget.tryReserve(partSize)
                 .orElseThrow(UploadCapacityReachedException::new);
         try {
-            files.findByOwnerAndFilenameKey(command.owner(), command.filename().key()).ifPresent(existing -> {
+            files.findByOwnerAndFilenameKey(command.userId(), command.filename().key()).ifPresent(existing -> {
                 throw existing.alreadyExists(Kind.FILENAME);
             });
         } catch (RuntimeException e) {
@@ -65,14 +65,14 @@ public class FileService {
         return new AdmittedUpload(files, blobs, detector, clock, command, reservation);
     }
 
-    public StoredFile get(OwnerId owner, FileId id) {
+    public StoredFile get(UserId userId, FileId id) {
         return files.findById(id)
-                .filter(file -> file.isOwnedBy(owner))
+                .filter(file -> file.isOwnedBy(userId))
                 .orElseThrow(FileNotFoundException::new);
     }
 
-    public StoredFile rename(OwnerId owner, FileId id, String newName) {
-        StoredFile file = get(owner, id);
+    public StoredFile rename(UserId userId, FileId id, String newName) {
+        StoredFile file = get(userId, id);
         Filename filename = Filename.of(newName);
         if (filename.equals(file.filename())) {
             return file;
@@ -81,7 +81,7 @@ public class FileService {
         try {
             files.updateFilename(renamed);
         } catch (RepositoryDuplicateException e) {
-            throw files.findByOwnerAndFilenameKey(owner, filename.key())
+            throw files.findByOwnerAndFilenameKey(userId, filename.key())
                     .filter(existing -> !existing.id().equals(id))
                     .map(existing -> existing.alreadyExists(Kind.FILENAME))
                     .orElseThrow(() -> e);
@@ -90,8 +90,8 @@ public class FileService {
     }
 
     /** Record first, then bytes; failed byte deletion leaves garbage, never a dangling record. */
-    public void delete(OwnerId owner, FileId id) {
-        StoredFile file = get(owner, id);
+    public void delete(UserId userId, FileId id) {
+        StoredFile file = get(userId, id);
         if (!files.delete(file.id())) {
             throw new FileNotFoundException();
         }

@@ -5,7 +5,7 @@ import com.teletronics.storage.domain.file.valueobject.ContentType;
 import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.domain.file.valueobject.Filename;
-import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.UserId;
 import com.teletronics.storage.domain.file.valueobject.Sha256;
 import com.teletronics.storage.domain.file.valueobject.StorageKey;
 import com.teletronics.storage.domain.file.valueobject.Tags;
@@ -33,7 +33,7 @@ public final class StoredFiles {
 
     /** A file whose size and SHA-256 match the given content. */
     public static StoredFile file(String owner, String filename, String contentType, byte[] content) {
-        return new StoredFile(FileId.newId(), OwnerId.of(owner), Filename.of(filename), Visibility.PRIVATE,
+        return new StoredFile(FileId.newId(), UserId.of(owner), Filename.of(filename), Visibility.PRIVATE,
                 Tags.of(List.of("work")), content.length, sha256(content), new ContentType(contentType),
                 UPLOADED_AT, DownloadToken.generate(), StorageKey.random());
     }

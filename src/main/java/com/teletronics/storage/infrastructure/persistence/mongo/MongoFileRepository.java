@@ -9,7 +9,7 @@ import com.teletronics.storage.domain.file.query.PageResult;
 import com.teletronics.storage.domain.file.query.SortField;
 import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
-import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.UserId;
 import com.teletronics.storage.domain.file.valueobject.Sha256;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -43,12 +43,12 @@ public class MongoFileRepository implements FileRepository {
     }
 
     @Override
-    public Optional<StoredFile> findByOwnerAndFilenameKey(OwnerId owner, String filenameKey) {
+    public Optional<StoredFile> findByOwnerAndFilenameKey(UserId owner, String filenameKey) {
         return findOne(where(FileDocument.OWNER_ID).is(owner.value()).and(FileDocument.FILENAME_KEY).is(filenameKey));
     }
 
     @Override
-    public Optional<StoredFile> findByOwnerAndSha256(OwnerId owner, Sha256 sha256) {
+    public Optional<StoredFile> findByOwnerAndSha256(UserId owner, Sha256 sha256) {
         return findOne(where(FileDocument.OWNER_ID).is(owner.value()).and(FileDocument.SHA256).is(sha256.hex()));
     }
 

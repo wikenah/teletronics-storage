@@ -1,7 +1,7 @@
 package com.teletronics.storage.domain.file.query;
 
 import com.teletronics.storage.domain.file.exception.InvalidFileException;
-import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.UserId;
 import com.teletronics.storage.domain.file.valueobject.Tag;
 import com.teletronics.storage.domain.file.valueobject.Visibility;
 
@@ -14,7 +14,7 @@ import java.util.Optional;
  * {@link #publicFiles} (every owner's PUBLIC files). {@code _id} always breaks ties (domain decision 11).
  */
 public record FileQuery(
-        Optional<OwnerId> owner,
+        Optional<UserId> owner,
         Optional<Visibility> visibility,
         Optional<Tag> tag,
         SortField sortField,
@@ -38,7 +38,7 @@ public record FileQuery(
         }
     }
 
-    public static FileQuery ownedBy(OwnerId owner) {
+    public static FileQuery ownedBy(UserId owner) {
         return new FileQuery(Optional.of(owner), Optional.empty(), Optional.empty(), SortField.UPLOAD_DATE, false, 0, DEFAULT_SIZE);
     }
 

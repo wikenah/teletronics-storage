@@ -11,7 +11,7 @@ import com.teletronics.storage.domain.file.StoredFile
 import com.teletronics.storage.domain.file.exception.DuplicateFileException
 import com.teletronics.storage.domain.file.exception.FileNotFoundException
 import com.teletronics.storage.domain.file.query.FileQuery
-import com.teletronics.storage.domain.file.valueobject.OwnerId
+import com.teletronics.storage.domain.file.valueobject.UserId
 import com.teletronics.storage.infrastructure.persistence.mongo.MongoFileRepository
 import com.teletronics.storage.infrastructure.persistence.mongo.MongoTimeoutsConfig
 import com.teletronics.storage.testing.BarrierBlobStore
@@ -133,7 +133,7 @@ class FileServiceMongoSpec extends Specification {
         StoredFile file = upload(service, "alice", "f.txt", "alice's bytes")
 
         when: "bob tries to delete F"
-        service.delete(OwnerId.of("bob"), file.id())
+        service.delete(UserId.of("bob"), file.id())
 
         then: "it is rejected as not found"
         thrown(FileNotFoundException)
@@ -184,7 +184,7 @@ class FileServiceMongoSpec extends Specification {
         assert halfway.await(10, SECONDS)
 
         when: "another request lists alice's files"
-        def page = service.list(FileQuery.ownedBy(OwnerId.of("alice")))
+        def page = service.list(FileQuery.ownedBy(UserId.of("alice")))
 
         then: "the listing is served"
         page.totalItems() == 0

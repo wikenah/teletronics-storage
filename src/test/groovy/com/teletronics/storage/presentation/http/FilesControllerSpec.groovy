@@ -13,7 +13,7 @@ import com.teletronics.storage.domain.file.query.FileQuery
 import com.teletronics.storage.domain.file.query.PageResult
 import com.teletronics.storage.domain.file.query.SortField
 import com.teletronics.storage.domain.file.valueobject.FileId
-import com.teletronics.storage.domain.file.valueobject.OwnerId
+import com.teletronics.storage.domain.file.valueobject.UserId
 import com.teletronics.storage.domain.file.valueobject.Tag
 import com.teletronics.storage.testing.StoredFiles
 import groovy.json.JsonSlurper
@@ -197,7 +197,7 @@ class FilesControllerSpec extends Specification {
 
         then: "the file service receives the values exactly as sent"
         1 * files.startUpload(_) >> { UploadCommand c -> command = c; pending }
-        command.owner().value() == "alice"
+        command.userId().value() == "alice"
         command.filename().value() == "report.pdf"
         command.visibility().name() == "PRIVATE"
         command.tags().values() == ["work", "2026"]
@@ -338,7 +338,7 @@ class FilesControllerSpec extends Specification {
     def "API-25 get one file"() {
         given: "the file service returns file F for owner alice"
         def file = StoredFiles.file("alice", "report.pdf")
-        files.get(OwnerId.of("alice"), file.id()) >> file
+        files.get(UserId.of("alice"), file.id()) >> file
 
         when: "alice sends GET /files/{F.id}"
         def response = perform(get("/files/" + file.id().value()).header("X-User-Id", "alice"))
@@ -407,7 +407,7 @@ class FilesControllerSpec extends Specification {
         def response = perform(request)
 
         then: "the file service is asked to rename only when the body is exactly {\"filename\": string}"
-        calls * files.rename(OwnerId.of("alice"), file.id(), newName) >> {
+        calls * files.rename(UserId.of("alice"), file.id(), newName) >> {
             if (failure) throw failure
             file.renamedTo(com.teletronics.storage.domain.file.valueobject.Filename.of(newName))
         }
@@ -453,7 +453,7 @@ class FilesControllerSpec extends Specification {
         def response = perform(delete("/files/" + id.value()).header("X-User-Id", "alice"))
 
         then: "the file service deletes it as alice's"
-        1 * files.delete(OwnerId.of("alice"), id)
+        1 * files.delete(UserId.of("alice"), id)
 
         and: "the response is 204 with no body"
         response.status == 204
@@ -483,7 +483,7 @@ class FilesControllerSpec extends Specification {
 
         then: "the file service is asked for alice's files: page 0, size 20, newest first"
         1 * files.list(_) >> { FileQuery q -> query = q; new PageResult([file], q.page(), q.size(), 1) }
-        query == FileQuery.ownedBy(OwnerId.of("alice"))
+        query == FileQuery.ownedBy(UserId.of("alice"))
         query.sortField() == SortField.UPLOAD_DATE && !query.ascending()
 
         and: "the response is 200 with items, page, size, totalItems and totalPages"
@@ -507,7 +507,7 @@ class FilesControllerSpec extends Specification {
 
         then: "the file service receives tag \"Work\", sort size descending, page 1, size 5"
         1 * files.list(_) >> { FileQuery q -> query = q; new PageResult([], q.page(), q.size(), 0) }
-        query.owner() == Optional.of(OwnerId.of("alice"))
+        query.owner() == Optional.of(UserId.of("alice"))
         query.tag() == Optional.of(Tag.of("Work"))
         query.sortField() == SortField.SIZE
         !query.ascending()

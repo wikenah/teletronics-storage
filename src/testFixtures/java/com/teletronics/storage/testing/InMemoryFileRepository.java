@@ -7,7 +7,7 @@ import com.teletronics.storage.domain.file.query.FileQuery;
 import com.teletronics.storage.domain.file.query.PageResult;
 import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
-import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.UserId;
 import com.teletronics.storage.domain.file.valueobject.Sha256;
 
 import java.util.ArrayList;
@@ -41,14 +41,14 @@ public class InMemoryFileRepository implements FileRepository {
     }
 
     @Override
-    public synchronized Optional<StoredFile> findByOwnerAndFilenameKey(OwnerId owner, String filenameKey) {
+    public synchronized Optional<StoredFile> findByOwnerAndFilenameKey(UserId owner, String filenameKey) {
         return files.values().stream()
                 .filter(f -> f.owner().equals(owner) && f.filename().key().equals(filenameKey))
                 .findFirst();
     }
 
     @Override
-    public synchronized Optional<StoredFile> findByOwnerAndSha256(OwnerId owner, Sha256 sha256) {
+    public synchronized Optional<StoredFile> findByOwnerAndSha256(UserId owner, Sha256 sha256) {
         return files.values().stream()
                 .filter(f -> f.owner().equals(owner) && f.sha256().equals(sha256))
                 .findFirst();

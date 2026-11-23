@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 STORAGE: a REST file storage and sharing API, built as an interview test project. Java 21, Spring Boot 4.1.3 (Spring 7, Tomcat 11, Jackson 3), MongoDB 8.0 for metadata, SeaweedFS (S3-compatible) for the bytes, Apache Tika for type detection, Spock 2.5 (Groovy 5) for tests. The README describes the API, the error table and how to run it.
 
-Lombok is used in the main code only for boilerplate: `@RequiredArgsConstructor`, `@Slf4j` and `@UtilityClass` (the static request validators and mappers). The domain layer doesn't use it.
+Lombok is used in the main code only for boilerplate: `@RequiredArgsConstructor`, `@Slf4j` and `@UtilityClass` (the static request validators, mappers and constants). The domain layer doesn't use it.
 
 Boot 4 moved many classes: check an existing import before assuming a Boot 3 package name (e.g. `org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest`, `org.springframework.boot.mongodb.autoconfigure.*`, `org.testcontainers.mongodb.MongoDBContainer`).
 
@@ -39,9 +39,9 @@ There is no linter or formatter configured. CI (`.github/workflows/ci.yml`) runs
 
 DDD layers under `com.teletronics.storage`. The dependency rule is a convention, not enforced by a tool: `domain` depends on nothing (no Spring, no Mongo); `application` depends on `domain`; `presentation` and `infrastructure` depend on both.
 
-- `domain/file`: the `StoredFile` aggregate and its `FileRepository` port at the top; `valueobject/` (self-validating: `Filename`, `Tags`, `OwnerId`, `FileId`, `DownloadToken`, …), `query/` (`FileQuery`, `SortField`, `PageResult`), `exception/`. Invalid input throws `InvalidFileException(field, message)`.
+- `domain/file`: the `StoredFile` aggregate and its `FileRepository` port at the top; `valueobject/` (self-validating: `Filename`, `Tags`, `UserId`, `FileId`, `DownloadToken`, …), `query/` (`FileQuery`, `SortField`, `PageResult`), `exception/`. Invalid input throws `InvalidFileException(field, message)`.
 - `application`: `FileService` (all use cases); `download/` (`Download`: a file's metadata plus its byte stream); `upload/` (the upload command, `AdmittedUpload` (which carries out an upload once it is admitted), the memory budget, the hashing stream); `port/` (the outbound interfaces `BlobStore`, `ContentTypeDetector`); `exception/`. `FileService` is a `@Service` and `UploadBudget` a `@Component` (its size comes from `uploads.buffer-budget-mib`); nothing else in this layer uses Spring.
-- `presentation/http`: `FilesController`, request handling split by role: `validator/` classes only check and throw, `mapper/` classes only convert an already-validated request into a command, a query or an owner id (the controller calls the validator first), response DTOs (`response/`), `ProblemDetailsAdvice` mapping every exception to RFC 9457 Problem Details (`problem/`), the HTTP layer's own exceptions (`exception/`).
+- `presentation/http`: `FilesController`, request handling split by role: `validator/` classes only check and throw (one per kind of input: upload request, list parameters, rename body, user id), `resolver/` supplies `@CurrentUser UserId` controller parameters (validates `X-User-Id`, then maps it; upload doesn't use it, its validator fixes the order of checks), `mapper/` classes only convert an already-validated request into a command, a query or an owner id (the controller calls the validator first), response DTOs (`response/`), `ProblemDetailsAdvice` mapping every exception to RFC 9457 Problem Details (`problem/`), the HTTP layer's own exceptions (`exception/`).
 - `infrastructure`: `persistence/mongo` (MongoOperations, not Spring Data repositories), `storage/s3` (AWS SDK v2 with the apache5 client), `detection` (Tika).
 
 ### The upload path (the part that spans every layer)
@@ -50,7 +50,7 @@ The design goal is uploads of any size inside a 1 GB container, with rejections 
 
 1. `FilesController.upload` takes the raw `HttpServletRequest`, never `@RequestBody` or multipart. Nothing may read the body before all checks pass.
 2. `TomcatContinueTimingCustomizer` sets `continueResponseTiming=onRead`, so `100 Continue` is sent only when the app first reads the body. Changing this breaks the Expect-dependent specs in `HttpUploadSpec`.
-3. `UploadRequestValidator` rejects what only HTTP knows (form bodies, compressed bodies, a missing `X-User-Id`) from the headers alone, and must run first; `UploadCommandMapper` then builds an `UploadCommand` of value objects. Input is validated once, by the value's own type; don't re-validate in the service.
+3. `UploadRequestValidator` (form body → content encoding → user id) rejects what only HTTP knows from the headers alone, and must run first; `UploadCommandMapper` then builds an `UploadCommand` of value objects. Input is validated once, by the value's own type; don't re-validate in the service.
 4. `FileService.startUpload` checks, in order: can the part size ever fit the budget (413), is budget available now (503, never waits), is the filename taken (409). It returns a `PendingUpload` holding the budget reservation; the controller must close it.
 5. `PendingUpload.complete(stream)` pipes the body through `DigestingInputStream` (SHA-256, byte count, first 64 KiB for Tika) into `BlobStore.store`. `S3BlobStore` buffers exactly one part in memory (8 MiB, or length ÷ 10,000, or 64 MiB for unknown length) and uses a single PutObject when the body fits one part.
 6. Bytes first, record after. Duplicates are decided by Mongo's unique indexes on `(owner, filenameKey)` and `(owner, sha256)` at insert; the loser's bytes are deleted. There is no lock or reservation, by design.

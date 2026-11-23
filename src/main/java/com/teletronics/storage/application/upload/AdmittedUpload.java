@@ -49,7 +49,7 @@ public final class AdmittedUpload implements PendingUpload {
         ContentType contentType = command.declaredContentType()
                 .filter(type -> !type.isGeneric())
                 .orElseGet(() -> detector.detect(digesting.prefix(), command.filename()));
-        StoredFile file = StoredFile.create(command.owner(), command.filename(), command.visibility(),
+        StoredFile file = StoredFile.create(command.userId(), command.filename(), command.visibility(),
                 command.tags(), size, digesting.sha256(), contentType, uploadedAt(), key);
         try {
             files.insert(file);

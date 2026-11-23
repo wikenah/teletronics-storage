@@ -8,7 +8,7 @@ import com.teletronics.storage.domain.file.valueobject.ContentType
 import com.teletronics.storage.domain.file.valueobject.DownloadToken
 import com.teletronics.storage.domain.file.valueobject.FileId
 import com.teletronics.storage.domain.file.valueobject.Filename
-import com.teletronics.storage.domain.file.valueobject.OwnerId
+import com.teletronics.storage.domain.file.valueobject.UserId
 import com.teletronics.storage.domain.file.valueobject.StorageKey
 import com.teletronics.storage.domain.file.valueobject.Tag
 import com.teletronics.storage.domain.file.valueobject.Tags
@@ -89,9 +89,9 @@ class MongoFileRepositorySpec extends Specification {
         expect:
         repository.findById(stored.id()) == Optional.of(stored)
         repository.findByDownloadToken(stored.downloadToken()) == Optional.of(stored)
-        repository.findByOwnerAndFilenameKey(OwnerId.of("alice"), "résumé.pdf") == Optional.of(stored)
-        repository.findByOwnerAndSha256(OwnerId.of("alice"), stored.sha256()) == Optional.of(stored)
-        repository.findByOwnerAndFilenameKey(OwnerId.of("bob"), "résumé.pdf").isEmpty()
+        repository.findByOwnerAndFilenameKey(UserId.of("alice"), "résumé.pdf") == Optional.of(stored)
+        repository.findByOwnerAndSha256(UserId.of("alice"), stored.sha256()) == Optional.of(stored)
+        repository.findByOwnerAndFilenameKey(UserId.of("bob"), "résumé.pdf").isEmpty()
     }
 
     def "a rename onto a taken name is a duplicate; a case-only rename is not"() {
@@ -146,8 +146,8 @@ class MongoFileRepositorySpec extends Specification {
         [work, home, bobs].each { repository.insert(it) }
 
         expect:
-        repository.find(FileQuery.ownedBy(OwnerId.of("alice"))).items()*.id() as Set == [work.id(), home.id()] as Set
-        repository.find(FileQuery.ownedBy(OwnerId.of("alice")).withTag(Tag.of("WORK"))).items()*.id() == [work.id()]
+        repository.find(FileQuery.ownedBy(UserId.of("alice"))).items()*.id() as Set == [work.id(), home.id()] as Set
+        repository.find(FileQuery.ownedBy(UserId.of("alice")).withTag(Tag.of("WORK"))).items()*.id() == [work.id()]
         repository.find(FileQuery.publicFiles().withTag(Tag.of("work"))).items()*.id() == [bobs.id()]
         repository.find(FileQuery.publicFiles().withTag(Tag.of("wor"))).items().isEmpty()
     }
@@ -157,7 +157,7 @@ class MongoFileRepositorySpec extends Specification {
         files.each { repository.insert(file([owner: "alice"] + it)) }
 
         when: "she lists her files sorted by #field #direction"
-        def page = repository.find(FileQuery.ownedBy(OwnerId.of("alice")).sortedBy(field, direction == "asc"))
+        def page = repository.find(FileQuery.ownedBy(UserId.of("alice")).sortedBy(field, direction == "asc"))
 
         then: "they come back in the expected order"
         page.items()*.filename()*.value() == order
@@ -181,7 +181,7 @@ class MongoFileRepositorySpec extends Specification {
         all.each { repository.insert(it) }
 
         when: "she walks every page sorted by size with page size 20"
-        def pages = (0..2).collect { repository.find(FileQuery.ownedBy(OwnerId.of("alice")).sortedBy(SortField.SIZE, true).page(it, 20)) }
+        def pages = (0..2).collect { repository.find(FileQuery.ownedBy(UserId.of("alice")).sortedBy(SortField.SIZE, true).page(it, 20)) }
 
         then: "she sees 3 pages of 20, 20 and 5 files"
         pages*.items()*.size() == [20, 20, 5]
@@ -199,7 +199,7 @@ class MongoFileRepositorySpec extends Specification {
         3.times { repository.insert(file(owner: "alice", name: "f$it")) }
 
         when:
-        def page = repository.find(FileQuery.ownedBy(OwnerId.of("alice")).page(5, 20))
+        def page = repository.find(FileQuery.ownedBy(UserId.of("alice")).page(5, 20))
 
         then:
         page.items().isEmpty()
@@ -215,7 +215,7 @@ class MongoFileRepositorySpec extends Specification {
     static StoredFile file(Map args) {
         String name = args.name ?: UUID.randomUUID().toString()
         byte[] content = ((args.content ?: name + UUID.randomUUID()) as String).bytes
-        new StoredFile(FileId.newId(), OwnerId.of(args.owner as String), Filename.of(name),
+        new StoredFile(FileId.newId(), UserId.of(args.owner as String), Filename.of(name),
                 Visibility.valueOf((args.visibility ?: "PRIVATE") as String), Tags.of((args.tags ?: []) as List<String>),
                 (args.size != null ? args.size : content.length) as long, StoredFiles.sha256(content),
                 new ContentType((args.type ?: "application/octet-stream") as String),

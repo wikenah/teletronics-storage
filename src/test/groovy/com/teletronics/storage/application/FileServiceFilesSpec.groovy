@@ -9,7 +9,7 @@ import com.teletronics.storage.domain.file.exception.FileNotFoundException
 import com.teletronics.storage.domain.file.exception.InvalidFileException
 import com.teletronics.storage.domain.file.query.FileQuery
 import com.teletronics.storage.domain.file.query.SortField
-import com.teletronics.storage.domain.file.valueobject.OwnerId
+import com.teletronics.storage.domain.file.valueobject.UserId
 import com.teletronics.storage.domain.file.valueobject.Tag
 import com.teletronics.storage.testing.FixedContentTypeDetector
 import com.teletronics.storage.testing.InMemoryBlobStore
@@ -32,8 +32,8 @@ class FileServiceFilesSpec extends Specification {
     def clock = Mock(Clock) { instant() >> { now = now.plusSeconds(1); now } }
     def service = new FileService(repository, blobs, detector, new UploadBudget(256), clock)
 
-    def alice = OwnerId.of("alice")
-    def bob = OwnerId.of("bob")
+    def alice = UserId.of("alice")
+    def bob = UserId.of("bob")
 
     // --- rename (decision 6) ------------------------------------------------------------------------
 
@@ -277,7 +277,7 @@ class FileServiceFilesSpec extends Specification {
         where:
         list              | query
         "the public list" | FileQuery.publicFiles()
-        "alice's files"   | FileQuery.ownedBy(OwnerId.of("alice"))
+        "alice's files"   | FileQuery.ownedBy(UserId.of("alice"))
     }
 
     def "DOM-47 the default order is newest first"() {

@@ -2,7 +2,7 @@ package com.teletronics.storage.application.upload;
 
 import com.teletronics.storage.domain.file.valueobject.ContentType;
 import com.teletronics.storage.domain.file.valueobject.Filename;
-import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.UserId;
 import com.teletronics.storage.domain.file.valueobject.Tags;
 import com.teletronics.storage.domain.file.valueobject.Visibility;
 
@@ -15,7 +15,7 @@ import java.util.OptionalLong;
  * checked once, by its own type, when the command is built.
  */
 public record UploadCommand(
-        OwnerId owner,
+        UserId userId,
         Filename filename,
         Visibility visibility,
         Tags tags,
@@ -26,12 +26,12 @@ public record UploadCommand(
      * Builds a command from the values as the client sent them.
      *
      * @throws com.teletronics.storage.domain.file.exception.InvalidFileException for the first invalid value, in
-     *         the order owner, filename, visibility, tags
+     *         the order user id, filename, visibility, tags
      */
-    public static UploadCommand of(String owner, String filename, String visibility, List<String> tags,
+    public static UploadCommand of(String userId, String filename, String visibility, List<String> tags,
                                    Optional<String> declaredContentType, OptionalLong declaredLength) {
         return new UploadCommand(
-                OwnerId.of(owner),
+                UserId.of(userId),
                 Filename.of(filename),
                 Visibility.parse(visibility),
                 Tags.of(tags),

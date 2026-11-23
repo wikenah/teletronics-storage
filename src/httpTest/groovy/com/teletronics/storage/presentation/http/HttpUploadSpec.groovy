@@ -11,7 +11,7 @@ import com.teletronics.storage.domain.file.valueobject.ContentType
 import com.teletronics.storage.domain.file.valueobject.DownloadToken
 import com.teletronics.storage.domain.file.valueobject.FileId
 import com.teletronics.storage.domain.file.valueobject.Filename
-import com.teletronics.storage.domain.file.valueobject.OwnerId
+import com.teletronics.storage.domain.file.valueobject.UserId
 import com.teletronics.storage.domain.file.valueobject.Sha256
 import com.teletronics.storage.domain.file.valueobject.StorageKey
 import com.teletronics.storage.domain.file.valueobject.Tags
@@ -357,7 +357,7 @@ class HttpUploadSpec extends Specification {
             byte[] hash = digest.digest()
             sha256 = hash.encodeHex().toString()
             outcome = "ended"
-            new StoredFile(FileId.newId(), OwnerId.of("alice"), Filename.of("big.bin"), Visibility.PRIVATE,
+            new StoredFile(FileId.newId(), UserId.of("alice"), Filename.of("big.bin"), Visibility.PRIVATE,
                     Tags.none(), count, Sha256.of(hash), ContentType.OCTET_STREAM, Instant.now(),
                     DownloadToken.generate(), StorageKey.random())
         }

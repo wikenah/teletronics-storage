@@ -1,4 +1,4 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.query;
 
 import java.util.List;
 

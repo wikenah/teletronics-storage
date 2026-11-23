@@ -1,9 +1,8 @@
 package com.teletronics.storage.infrastructure.storage.s3
 
-import com.teletronics.storage.application.port.BlobNotFoundException
-import com.teletronics.storage.domain.file.StorageKey
+import com.teletronics.storage.application.exception.BlobNotFoundException
+import com.teletronics.storage.domain.file.valueobject.StorageKey
 import com.teletronics.storage.testing.SeaweedFsContainer
-import static com.teletronics.storage.testing.TestBytes.random
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.http.apache5.Apache5HttpClient
@@ -16,6 +15,7 @@ import spock.lang.Specification
 import java.security.MessageDigest
 
 import static com.teletronics.storage.infrastructure.storage.s3.PartSizePolicy.MIB
+import static com.teletronics.storage.testing.TestBytes.random
 
 /**
  * The S3 adapter on a real SeaweedFS (docs/acceptance-criteria/storage.md decisions 1, 2, 4).

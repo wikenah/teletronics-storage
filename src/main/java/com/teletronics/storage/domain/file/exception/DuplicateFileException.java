@@ -1,4 +1,6 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.exception;
+
+import com.teletronics.storage.domain.file.StoredFile;
 
 /**
  * The owner already has a file with this name or this content. Carries the existing file so the

@@ -1,6 +1,6 @@
 package com.teletronics.storage.application.upload;
 
-import com.teletronics.storage.domain.file.Sha256;
+import com.teletronics.storage.domain.file.valueobject.Sha256;
 
 import java.io.FilterInputStream;
 import java.io.IOException;

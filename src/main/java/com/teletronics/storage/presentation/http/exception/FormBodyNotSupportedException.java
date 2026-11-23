@@ -1,4 +1,4 @@
-package com.teletronics.storage.presentation.http.problem;
+package com.teletronics.storage.presentation.http.exception;
 
 /**
  * An upload sent as an HTML form (multipart/form-data or application/x-www-form-urlencoded) instead of the

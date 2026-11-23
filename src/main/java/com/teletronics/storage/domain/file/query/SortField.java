@@ -1,4 +1,4 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.query;
 
 /**
  * The five sort fields the brief asks for (domain decision 11).

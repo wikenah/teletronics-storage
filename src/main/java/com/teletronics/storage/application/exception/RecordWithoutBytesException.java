@@ -1,4 +1,4 @@
-package com.teletronics.storage.application;
+package com.teletronics.storage.application.exception;
 
 /**
  * A file record exists but its bytes are missing from the store: our inconsistency, mapped to 500 (STO-16).

@@ -1,4 +1,4 @@
-package com.teletronics.storage.application.upload;
+package com.teletronics.storage.application.exception;
 
 /**
  * The body ended before the declared Content-Length: never treated as a complete file (API-11).

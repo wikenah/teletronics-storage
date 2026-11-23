@@ -1,14 +1,17 @@
 package com.teletronics.storage.presentation.http.problem;
 
-import com.teletronics.storage.application.port.FileTooLargeException;
-import com.teletronics.storage.application.upload.IncompleteUploadException;
-import com.teletronics.storage.application.upload.UploadCapacityReachedException;
-import com.teletronics.storage.application.port.StorageUnavailableException;
-import com.teletronics.storage.domain.file.DuplicateFileException;
-import com.teletronics.storage.domain.file.FileNotFoundException;
-import com.teletronics.storage.domain.file.InvalidFileException;
-import com.teletronics.storage.domain.file.RepositoryUnavailableException;
+import com.teletronics.storage.application.exception.FileTooLargeException;
+import com.teletronics.storage.application.exception.IncompleteUploadException;
+import com.teletronics.storage.application.exception.StorageUnavailableException;
+import com.teletronics.storage.application.exception.UploadCapacityReachedException;
 import com.teletronics.storage.domain.file.StoredFile;
+import com.teletronics.storage.domain.file.exception.DuplicateFileException;
+import com.teletronics.storage.domain.file.exception.FileNotFoundException;
+import com.teletronics.storage.domain.file.exception.InvalidFileException;
+import com.teletronics.storage.domain.file.exception.RepositoryUnavailableException;
+import com.teletronics.storage.presentation.http.exception.FormBodyNotSupportedException;
+import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
+import com.teletronics.storage.presentation.http.exception.UnsupportedContentEncodingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;

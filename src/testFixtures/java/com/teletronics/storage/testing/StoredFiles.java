@@ -1,15 +1,15 @@
 package com.teletronics.storage.testing;
 
-import com.teletronics.storage.domain.file.ContentType;
-import com.teletronics.storage.domain.file.DownloadToken;
-import com.teletronics.storage.domain.file.FileId;
-import com.teletronics.storage.domain.file.Filename;
-import com.teletronics.storage.domain.file.OwnerId;
-import com.teletronics.storage.domain.file.Sha256;
-import com.teletronics.storage.domain.file.StorageKey;
 import com.teletronics.storage.domain.file.StoredFile;
-import com.teletronics.storage.domain.file.Tags;
-import com.teletronics.storage.domain.file.Visibility;
+import com.teletronics.storage.domain.file.valueobject.ContentType;
+import com.teletronics.storage.domain.file.valueobject.DownloadToken;
+import com.teletronics.storage.domain.file.valueobject.FileId;
+import com.teletronics.storage.domain.file.valueobject.Filename;
+import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.Sha256;
+import com.teletronics.storage.domain.file.valueobject.StorageKey;
+import com.teletronics.storage.domain.file.valueobject.Tags;
+import com.teletronics.storage.domain.file.valueobject.Visibility;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

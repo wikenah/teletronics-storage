@@ -1,4 +1,4 @@
-package com.teletronics.storage.presentation.http.problem;
+package com.teletronics.storage.presentation.http.exception;
 
 /**
  * A compressed request body (Content-Encoding other than identity). Mapped to 415 with Accept-Encoding: identity.

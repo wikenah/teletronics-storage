@@ -1,5 +1,15 @@
 package com.teletronics.storage.domain.file;
 
+import com.teletronics.storage.domain.file.valueobject.ContentType;
+import com.teletronics.storage.domain.file.valueobject.DownloadToken;
+import com.teletronics.storage.domain.file.valueobject.FileId;
+import com.teletronics.storage.domain.file.valueobject.Filename;
+import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.Sha256;
+import com.teletronics.storage.domain.file.valueobject.StorageKey;
+import com.teletronics.storage.domain.file.valueobject.Tags;
+import com.teletronics.storage.domain.file.valueobject.Visibility;
+
 import java.time.Instant;
 import java.util.Objects;
 

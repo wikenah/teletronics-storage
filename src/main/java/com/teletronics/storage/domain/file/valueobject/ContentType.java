@@ -1,4 +1,4 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.valueobject;
 
 /**
  * A media type such as "application/pdf". Either declared by the client or detected (domain decision 9).

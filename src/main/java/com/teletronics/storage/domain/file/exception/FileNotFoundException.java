@@ -1,4 +1,4 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.exception;
 
 /**
  * No such file, or not the caller's: both look the same to the caller (domain decision 10).

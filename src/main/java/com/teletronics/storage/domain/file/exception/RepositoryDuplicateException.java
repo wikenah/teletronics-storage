@@ -1,4 +1,6 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.exception;
+
+import com.teletronics.storage.domain.file.FileRepository;
 
 /**
  * Raised by a {@link FileRepository} when a write breaks one of the unique rules

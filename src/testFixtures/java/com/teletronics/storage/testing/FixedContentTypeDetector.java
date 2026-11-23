@@ -1,8 +1,8 @@
 package com.teletronics.storage.testing;
 
 import com.teletronics.storage.application.port.ContentTypeDetector;
-import com.teletronics.storage.domain.file.ContentType;
-import com.teletronics.storage.domain.file.Filename;
+import com.teletronics.storage.domain.file.valueobject.ContentType;
+import com.teletronics.storage.domain.file.valueobject.Filename;
 
 /**
  * Always "detects" the same type; records what it was asked.

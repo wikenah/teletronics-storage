@@ -1,9 +1,9 @@
 package com.teletronics.storage.presentation.http.request;
 
 import com.teletronics.storage.application.upload.UploadCommand;
-import com.teletronics.storage.presentation.http.problem.FormBodyNotSupportedException;
-import com.teletronics.storage.presentation.http.problem.InvalidRequestException;
-import com.teletronics.storage.presentation.http.problem.UnsupportedContentEncodingException;
+import com.teletronics.storage.presentation.http.exception.FormBodyNotSupportedException;
+import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
+import com.teletronics.storage.presentation.http.exception.UnsupportedContentEncodingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;

@@ -1,20 +1,20 @@
 package com.teletronics.storage.presentation.http
 
 import com.teletronics.storage.application.FileService
-import com.teletronics.storage.application.port.FileTooLargeException
+import com.teletronics.storage.application.exception.FileTooLargeException
+import com.teletronics.storage.application.exception.StorageUnavailableException
 import com.teletronics.storage.application.upload.PendingUpload
 import com.teletronics.storage.application.upload.UploadCommand
-import com.teletronics.storage.application.port.StorageUnavailableException
-import com.teletronics.storage.domain.file.DuplicateFileException
-import com.teletronics.storage.domain.file.FileId
-import com.teletronics.storage.domain.file.FileNotFoundException
-import com.teletronics.storage.domain.file.FileQuery
-import com.teletronics.storage.domain.file.InvalidFileException
-import com.teletronics.storage.domain.file.OwnerId
-import com.teletronics.storage.domain.file.PageResult
-import com.teletronics.storage.domain.file.RepositoryUnavailableException
-import com.teletronics.storage.domain.file.SortField
-import com.teletronics.storage.domain.file.Tag
+import com.teletronics.storage.domain.file.exception.DuplicateFileException
+import com.teletronics.storage.domain.file.exception.FileNotFoundException
+import com.teletronics.storage.domain.file.exception.InvalidFileException
+import com.teletronics.storage.domain.file.exception.RepositoryUnavailableException
+import com.teletronics.storage.domain.file.query.FileQuery
+import com.teletronics.storage.domain.file.query.PageResult
+import com.teletronics.storage.domain.file.query.SortField
+import com.teletronics.storage.domain.file.valueobject.FileId
+import com.teletronics.storage.domain.file.valueobject.OwnerId
+import com.teletronics.storage.domain.file.valueobject.Tag
 import com.teletronics.storage.testing.StoredFiles
 import groovy.json.JsonSlurper
 import org.spockframework.spring.SpringBean
@@ -409,7 +409,7 @@ class FilesControllerSpec extends Specification {
         then: "the file service is asked to rename only when the body is exactly {\"filename\": string}"
         calls * files.rename(OwnerId.of("alice"), file.id(), newName) >> {
             if (failure) throw failure
-            file.renamedTo(com.teletronics.storage.domain.file.Filename.of(newName))
+            file.renamedTo(com.teletronics.storage.domain.file.valueobject.Filename.of(newName))
         }
 
         and: "the response is #status"

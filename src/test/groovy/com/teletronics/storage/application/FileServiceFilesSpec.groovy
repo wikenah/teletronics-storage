@@ -1,15 +1,16 @@
 package com.teletronics.storage.application
 
+import com.teletronics.storage.application.exception.RecordWithoutBytesException
+import com.teletronics.storage.application.exception.StorageUnavailableException
 import com.teletronics.storage.application.upload.UploadBudget
 import com.teletronics.storage.application.upload.UploadCommand
-import com.teletronics.storage.application.port.StorageUnavailableException
-import com.teletronics.storage.domain.file.DuplicateFileException
-import com.teletronics.storage.domain.file.FileNotFoundException
-import com.teletronics.storage.domain.file.FileQuery
-import com.teletronics.storage.domain.file.InvalidFileException
-import com.teletronics.storage.domain.file.OwnerId
-import com.teletronics.storage.domain.file.SortField
-import com.teletronics.storage.domain.file.Tag
+import com.teletronics.storage.domain.file.exception.DuplicateFileException
+import com.teletronics.storage.domain.file.exception.FileNotFoundException
+import com.teletronics.storage.domain.file.exception.InvalidFileException
+import com.teletronics.storage.domain.file.query.FileQuery
+import com.teletronics.storage.domain.file.query.SortField
+import com.teletronics.storage.domain.file.valueobject.OwnerId
+import com.teletronics.storage.domain.file.valueobject.Tag
 import com.teletronics.storage.testing.FixedContentTypeDetector
 import com.teletronics.storage.testing.InMemoryBlobStore
 import com.teletronics.storage.testing.InMemoryFileRepository
@@ -17,7 +18,6 @@ import spock.lang.Specification
 
 import java.time.Clock
 import java.time.Instant
-import java.time.ZoneOffset
 
 /**
  * Rename, delete, download, listing and type detection at service level

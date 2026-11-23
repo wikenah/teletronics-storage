@@ -1,17 +1,17 @@
 package com.teletronics.storage.infrastructure.persistence.mongo;
 
-import com.teletronics.storage.domain.file.DownloadToken;
-import com.teletronics.storage.domain.file.FileId;
-import com.teletronics.storage.domain.file.FileQuery;
 import com.teletronics.storage.domain.file.FileRepository;
-import com.teletronics.storage.domain.file.OwnerId;
-import com.teletronics.storage.domain.file.PageResult;
-import com.teletronics.storage.domain.file.RepositoryDuplicateException;
-import com.teletronics.storage.domain.file.RepositoryUnavailableException;
-import com.teletronics.storage.domain.file.Sha256;
-import com.teletronics.storage.domain.file.SortField;
 import com.teletronics.storage.domain.file.StoredFile;
-import com.teletronics.storage.domain.file.Visibility;
+import com.teletronics.storage.domain.file.exception.RepositoryDuplicateException;
+import com.teletronics.storage.domain.file.exception.RepositoryUnavailableException;
+import com.teletronics.storage.domain.file.query.FileQuery;
+import com.teletronics.storage.domain.file.query.PageResult;
+import com.teletronics.storage.domain.file.query.SortField;
+import com.teletronics.storage.domain.file.valueobject.DownloadToken;
+import com.teletronics.storage.domain.file.valueobject.FileId;
+import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.Sha256;
+import com.teletronics.storage.domain.file.valueobject.Visibility;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.TransientDataAccessException;

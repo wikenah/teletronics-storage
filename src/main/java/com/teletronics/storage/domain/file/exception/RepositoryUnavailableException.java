@@ -1,4 +1,4 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.exception;
 
 /**
  * The metadata store can't be reached right now (connection refused, timeout). Mapped to 503.

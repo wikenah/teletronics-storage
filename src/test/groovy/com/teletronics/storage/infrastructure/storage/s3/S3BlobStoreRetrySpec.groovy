@@ -2,9 +2,8 @@ package com.teletronics.storage.infrastructure.storage.s3
 
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
-import com.teletronics.storage.application.port.StorageUnavailableException
-import com.teletronics.storage.domain.file.StorageKey
-import static com.teletronics.storage.testing.TestBytes.random
+import com.teletronics.storage.application.exception.StorageUnavailableException
+import com.teletronics.storage.domain.file.valueobject.StorageKey
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.http.apache5.Apache5HttpClient
@@ -17,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 import static com.teletronics.storage.infrastructure.storage.s3.PartSizePolicy.MIB
+import static com.teletronics.storage.testing.TestBytes.random
 
 /**
  * The real AWS SDK client against a small local S3 stub that can fail chosen parts, so the SDK's own

@@ -1,9 +1,8 @@
 package com.teletronics.storage.infrastructure.storage.s3
 
-import com.teletronics.storage.application.port.FileTooLargeException
-import com.teletronics.storage.application.port.StorageUnavailableException
-import com.teletronics.storage.domain.file.StorageKey
-import static com.teletronics.storage.testing.TestBytes.random
+import com.teletronics.storage.application.exception.FileTooLargeException
+import com.teletronics.storage.application.exception.StorageUnavailableException
+import com.teletronics.storage.domain.file.valueobject.StorageKey
 import software.amazon.awssdk.core.exception.SdkClientException
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
@@ -22,6 +21,7 @@ import spock.lang.Specification
 import java.security.MessageDigest
 
 import static com.teletronics.storage.infrastructure.storage.s3.PartSizePolicy.MIB
+import static com.teletronics.storage.testing.TestBytes.random
 
 /**
  * The S3 write loop with a fake S3 client that records every call

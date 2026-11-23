@@ -1,5 +1,6 @@
 package com.teletronics.storage.domain.file
 
+import com.teletronics.storage.domain.file.valueobject.DownloadToken
 import spock.lang.Specification
 
 /**

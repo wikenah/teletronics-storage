@@ -1,4 +1,4 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.exception;
 
 /**
  * A value supplied for a file breaks a domain rule. Carries the field and the rule that was broken.

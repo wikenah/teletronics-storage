@@ -1,6 +1,6 @@
 package com.teletronics.storage.presentation.http.request;
 
-import com.teletronics.storage.presentation.http.problem.InvalidRequestException;
+import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
 
 import java.util.Map;
 import java.util.Set;

@@ -3,10 +3,11 @@ package com.teletronics.storage.system
 import com.teletronics.storage.testing.ApiResponse
 import com.teletronics.storage.testing.RawHttpClient
 import com.teletronics.storage.testing.StorageApiClient
-import static com.teletronics.storage.testing.TestBytes.sha256
-import static com.teletronics.storage.testing.TestBytes.unique
 import spock.lang.Shared
 import spock.lang.Specification
+
+import static com.teletronics.storage.testing.TestBytes.sha256
+import static com.teletronics.storage.testing.TestBytes.unique
 
 
 /**

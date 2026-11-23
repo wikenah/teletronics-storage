@@ -1,4 +1,6 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.valueobject;
+
+import com.teletronics.storage.domain.file.exception.InvalidFileException;
 
 /**
  * The user a file belongs to, as given with each request (the brief has no user management).

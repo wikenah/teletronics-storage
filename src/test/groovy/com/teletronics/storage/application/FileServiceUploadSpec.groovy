@@ -1,21 +1,20 @@
 package com.teletronics.storage.application
 
-import com.teletronics.storage.application.upload.UploadCapacityReachedException
-import com.teletronics.storage.application.upload.IncompleteUploadException
+import com.teletronics.storage.application.exception.FileTooLargeException
+import com.teletronics.storage.application.exception.IncompleteUploadException
+import com.teletronics.storage.application.exception.StorageUnavailableException
+import com.teletronics.storage.application.exception.UploadCapacityReachedException
 import com.teletronics.storage.application.upload.UploadBudget
 import com.teletronics.storage.application.upload.UploadCommand
-import com.teletronics.storage.application.port.FileTooLargeException
-import com.teletronics.storage.application.port.StorageUnavailableException
-import com.teletronics.storage.domain.file.DuplicateFileException
-import com.teletronics.storage.domain.file.FileQuery
-import com.teletronics.storage.domain.file.InvalidFileException
-import com.teletronics.storage.domain.file.OwnerId
-import com.teletronics.storage.domain.file.RepositoryUnavailableException
-import com.teletronics.storage.domain.file.StorageKey
+import com.teletronics.storage.domain.file.exception.DuplicateFileException
+import com.teletronics.storage.domain.file.exception.InvalidFileException
+import com.teletronics.storage.domain.file.exception.RepositoryUnavailableException
+import com.teletronics.storage.domain.file.query.FileQuery
+import com.teletronics.storage.domain.file.valueobject.OwnerId
+import com.teletronics.storage.domain.file.valueobject.StorageKey
 import com.teletronics.storage.testing.FixedContentTypeDetector
 import com.teletronics.storage.testing.InMemoryBlobStore
 import com.teletronics.storage.testing.InMemoryFileRepository
-import static com.teletronics.storage.testing.TestBytes.sha256
 import spock.lang.Specification
 
 import java.time.Clock
@@ -23,6 +22,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 
 import static com.teletronics.storage.testing.InMemoryBlobStore.MIB
+import static com.teletronics.storage.testing.TestBytes.sha256
 
 /**
  * Upload use case at service level (docs/acceptance-criteria/domain.md decisions 1, 4, 5;

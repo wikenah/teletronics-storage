@@ -1,4 +1,4 @@
-package com.teletronics.storage.application.port;
+package com.teletronics.storage.application.exception;
 
 /**
  * The file can never be stored with bounded part buffers: its parts would outgrow the upload budget, or a body

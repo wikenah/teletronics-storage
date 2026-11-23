@@ -1,5 +1,7 @@
 package com.teletronics.storage.domain.file
 
+import com.teletronics.storage.domain.file.exception.InvalidFileException
+import com.teletronics.storage.domain.file.valueobject.Filename
 import spock.lang.Specification
 
 /**

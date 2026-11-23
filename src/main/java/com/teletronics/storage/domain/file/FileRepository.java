@@ -1,5 +1,13 @@
 package com.teletronics.storage.domain.file;
 
+import com.teletronics.storage.domain.file.exception.RepositoryDuplicateException;
+import com.teletronics.storage.domain.file.query.FileQuery;
+import com.teletronics.storage.domain.file.query.PageResult;
+import com.teletronics.storage.domain.file.valueobject.DownloadToken;
+import com.teletronics.storage.domain.file.valueobject.FileId;
+import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.Sha256;
+
 import java.util.Optional;
 
 /**

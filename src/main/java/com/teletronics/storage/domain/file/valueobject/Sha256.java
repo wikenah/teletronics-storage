@@ -1,4 +1,4 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.valueobject;
 
 import java.util.HexFormat;
 import java.util.regex.Pattern;

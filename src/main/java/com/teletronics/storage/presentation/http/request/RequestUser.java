@@ -1,7 +1,7 @@
 package com.teletronics.storage.presentation.http.request;
 
-import com.teletronics.storage.domain.file.OwnerId;
-import com.teletronics.storage.presentation.http.problem.InvalidRequestException;
+import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**

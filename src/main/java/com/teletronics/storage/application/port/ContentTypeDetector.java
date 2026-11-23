@@ -1,7 +1,7 @@
 package com.teletronics.storage.application.port;
 
-import com.teletronics.storage.domain.file.ContentType;
-import com.teletronics.storage.domain.file.Filename;
+import com.teletronics.storage.domain.file.valueobject.ContentType;
+import com.teletronics.storage.domain.file.valueobject.Filename;
 
 /**
  * Detects a file's media type from its first bytes and name (Domain decision 9).

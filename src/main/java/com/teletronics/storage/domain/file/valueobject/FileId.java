@@ -1,4 +1,4 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.valueobject;
 
 import java.util.Optional;
 import java.util.UUID;

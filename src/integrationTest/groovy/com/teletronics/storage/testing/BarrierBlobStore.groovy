@@ -1,6 +1,6 @@
 package com.teletronics.storage.testing
 
-import com.teletronics.storage.domain.file.StorageKey
+import com.teletronics.storage.domain.file.valueobject.StorageKey
 
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.TimeUnit

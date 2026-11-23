@@ -1,4 +1,8 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.query;
+
+import com.teletronics.storage.domain.file.exception.InvalidFileException;
+import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.Tag;
 
 import java.util.Objects;
 import java.util.Optional;

@@ -1,7 +1,7 @@
 package com.teletronics.storage.presentation.http.response;
 
-import com.teletronics.storage.domain.file.PageResult;
 import com.teletronics.storage.domain.file.StoredFile;
+import com.teletronics.storage.domain.file.query.PageResult;
 
 import java.util.List;
 

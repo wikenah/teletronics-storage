@@ -2,8 +2,8 @@ package com.teletronics.storage.presentation.http
 
 import com.teletronics.storage.application.Download
 import com.teletronics.storage.application.FileService
-import com.teletronics.storage.application.RecordWithoutBytesException
-import com.teletronics.storage.domain.file.FileNotFoundException
+import com.teletronics.storage.application.exception.RecordWithoutBytesException
+import com.teletronics.storage.domain.file.exception.FileNotFoundException
 import com.teletronics.storage.testing.StoredFiles
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired

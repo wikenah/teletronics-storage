@@ -1,4 +1,4 @@
-package com.teletronics.storage.application.port;
+package com.teletronics.storage.application.exception;
 
 /**
  * Nothing is stored under the key.

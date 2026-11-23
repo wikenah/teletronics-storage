@@ -1,10 +1,10 @@
 package com.teletronics.storage.infrastructure.storage.s3;
 
-import com.teletronics.storage.application.port.BlobNotFoundException;
+import com.teletronics.storage.application.exception.BlobNotFoundException;
+import com.teletronics.storage.application.exception.FileTooLargeException;
+import com.teletronics.storage.application.exception.StorageUnavailableException;
 import com.teletronics.storage.application.port.BlobStore;
-import com.teletronics.storage.application.port.FileTooLargeException;
-import com.teletronics.storage.application.port.StorageUnavailableException;
-import com.teletronics.storage.domain.file.StorageKey;
+import com.teletronics.storage.domain.file.valueobject.StorageKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.exception.SdkClientException;

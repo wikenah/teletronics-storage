@@ -1,4 +1,6 @@
-package com.teletronics.storage.domain.file;
+package com.teletronics.storage.domain.file.valueobject;
+
+import com.teletronics.storage.domain.file.exception.InvalidFileException;
 
 /**
  * PUBLIC files appear in the public listing. Both kinds are downloadable by their link.

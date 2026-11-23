@@ -1,15 +1,15 @@
 package com.teletronics.storage.testing;
 
-import com.teletronics.storage.domain.file.DownloadToken;
-import com.teletronics.storage.domain.file.FileId;
-import com.teletronics.storage.domain.file.FileQuery;
 import com.teletronics.storage.domain.file.FileRepository;
-import com.teletronics.storage.domain.file.OwnerId;
-import com.teletronics.storage.domain.file.PageResult;
-import com.teletronics.storage.domain.file.RepositoryDuplicateException;
-import com.teletronics.storage.domain.file.Sha256;
 import com.teletronics.storage.domain.file.StoredFile;
-import com.teletronics.storage.domain.file.Visibility;
+import com.teletronics.storage.domain.file.exception.RepositoryDuplicateException;
+import com.teletronics.storage.domain.file.query.FileQuery;
+import com.teletronics.storage.domain.file.query.PageResult;
+import com.teletronics.storage.domain.file.valueobject.DownloadToken;
+import com.teletronics.storage.domain.file.valueobject.FileId;
+import com.teletronics.storage.domain.file.valueobject.OwnerId;
+import com.teletronics.storage.domain.file.valueobject.Sha256;
+import com.teletronics.storage.domain.file.valueobject.Visibility;
 
 import java.util.ArrayList;
 import java.util.Comparator;

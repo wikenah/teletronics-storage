@@ -15,7 +15,6 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import spock.lang.Specification
 
-
 import static com.teletronics.storage.testing.TestBytes.random
 import static com.teletronics.storage.testing.TestBytes.sha256
 import static org.springframework.data.mongodb.core.query.Criteria.where

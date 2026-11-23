@@ -1,8 +1,8 @@
 package com.teletronics.storage.infrastructure.detection;
 
 import com.teletronics.storage.application.port.ContentTypeDetector;
-import com.teletronics.storage.domain.file.ContentType;
-import com.teletronics.storage.domain.file.Filename;
+import com.teletronics.storage.domain.file.valueobject.ContentType;
+import com.teletronics.storage.domain.file.valueobject.Filename;
 import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
 

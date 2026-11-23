@@ -1,9 +1,9 @@
 package com.teletronics.storage.presentation.http.request;
 
-import com.teletronics.storage.domain.file.FileQuery;
-import com.teletronics.storage.domain.file.SortField;
-import com.teletronics.storage.domain.file.Tag;
-import com.teletronics.storage.presentation.http.problem.InvalidRequestException;
+import com.teletronics.storage.domain.file.query.FileQuery;
+import com.teletronics.storage.domain.file.query.SortField;
+import com.teletronics.storage.domain.file.valueobject.Tag;
+import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Map;

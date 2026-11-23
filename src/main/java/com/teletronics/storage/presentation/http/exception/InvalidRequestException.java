@@ -1,4 +1,4 @@
-package com.teletronics.storage.presentation.http.problem;
+package com.teletronics.storage.presentation.http.exception;
 
 /**
  * A request value the HTTP layer rejects before calling the file service. Mapped to 400.

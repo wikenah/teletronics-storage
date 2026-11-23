@@ -1,8 +1,8 @@
 package com.teletronics.storage.testing;
 
-import com.teletronics.storage.application.port.BlobNotFoundException;
+import com.teletronics.storage.application.exception.BlobNotFoundException;
 import com.teletronics.storage.application.port.BlobStore;
-import com.teletronics.storage.domain.file.StorageKey;
+import com.teletronics.storage.domain.file.valueobject.StorageKey;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -13,24 +13,12 @@ public record Filename(String value) {
     public static final int MAX_LENGTH = 255;
 
     public Filename {
-        if (value == null || value.isBlank()) {
-            throw new InvalidFileException("filename", "filename must not be blank");
-        }
-        if (value.length() > MAX_LENGTH) {
-            throw new InvalidFileException("filename", "filename must be at most 255 characters");
-        }
-        if (value.indexOf('/') >= 0) {
-            throw new InvalidFileException("filename", "filename must not contain '/'");
-        }
-        if (value.indexOf('\\') >= 0) {
-            throw new InvalidFileException("filename", "filename must not contain '\\'");
-        }
-        if (value.equals(".") || value.equals("..")) {
-            throw new InvalidFileException("filename", "filename must not be '.' or '..'");
-        }
-        if (value.chars().anyMatch(Filename::isControl)) {
-            throw new InvalidFileException("filename", "filename must not contain control characters");
-        }
+        require(value != null && !value.isBlank(), "must not be blank");
+        require(value.length() <= MAX_LENGTH, "must be at most " + MAX_LENGTH + " characters");
+        require(value.indexOf('/') < 0, "must not contain '/'");
+        require(value.indexOf('\\') < 0, "must not contain '\\'");
+        require(!value.equals(".") && !value.equals(".."), "must not be '.' or '..'");
+        require(value.chars().noneMatch(Filename::isControl), "must not contain control characters");
     }
 
     public static Filename of(String value) {
@@ -40,6 +28,12 @@ public record Filename(String value) {
     /** The comparison key: lowercase with {@link Locale#ROOT}. */
     public String key() {
         return value.toLowerCase(Locale.ROOT);
+    }
+
+    private static void require(boolean valid, String rule) {
+        if (!valid) {
+            throw new InvalidFileException("filename", "filename " + rule);
+        }
     }
 
     static boolean isControl(int c) {

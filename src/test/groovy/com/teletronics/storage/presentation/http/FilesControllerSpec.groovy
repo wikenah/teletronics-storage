@@ -361,6 +361,25 @@ class FilesControllerSpec extends Specification {
         problem(response).type == "/problems/file-not-found"
     }
 
+    def "API-25 a blank file id is 404, not an internal error (#method)"() {
+        when: "alice sends #method for a file id of only spaces"
+        def response = perform(request.header("X-User-Id", "alice").contentType("application/json")
+                .content('{"filename": "new.txt"}'))
+
+        then: "the response is 404 /problems/file-not-found"
+        response.status == 404
+        problem(response).type == "/problems/file-not-found"
+
+        and: "the file service is not called"
+        0 * files._
+
+        where:
+        method   | request
+        "GET"    | get(URI.create("/files/%20"))
+        "PATCH"  | patch(URI.create("/files/%20"))
+        "DELETE" | delete(URI.create("/files/%20"))
+    }
+
     def "an owner is required on every owner endpoint (#method #path)"() {
         when: "the request is sent without X-User-Id"
         def response = perform(request)

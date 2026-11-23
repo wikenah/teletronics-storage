@@ -1,5 +1,6 @@
 package com.teletronics.storage.domain.file;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -11,6 +12,11 @@ public record FileId(String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("file id must not be blank");
         }
+    }
+
+    /** Parses an id from a URL; anything that can't be an id is simply "no such file". */
+    public static Optional<FileId> parse(String value) {
+        return value == null || value.isBlank() ? Optional.empty() : Optional.of(new FileId(value));
     }
 
     public static FileId newId() {

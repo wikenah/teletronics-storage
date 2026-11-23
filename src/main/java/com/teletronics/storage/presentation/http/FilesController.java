@@ -3,6 +3,7 @@ package com.teletronics.storage.presentation.http;
 import com.teletronics.storage.application.FileService;
 import com.teletronics.storage.application.PendingUpload;
 import com.teletronics.storage.domain.file.FileId;
+import com.teletronics.storage.domain.file.FileNotFoundException;
 import com.teletronics.storage.domain.file.FileQuery;
 import com.teletronics.storage.domain.file.StoredFile;
 import com.teletronics.storage.presentation.http.request.ListParamsParser;
@@ -52,19 +53,19 @@ public class FilesController {
 
     @GetMapping("/{id}")
     public FileResponse get(@PathVariable String id, HttpServletRequest request) {
-        return FileResponse.of(files.get(RequestUser.owner(request), new FileId(id)));
+        return FileResponse.of(files.get(RequestUser.owner(request), fileId(id)));
     }
 
     @PatchMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public FileResponse rename(@PathVariable String id, @RequestBody Map<String, Object> body,
                                HttpServletRequest request) {
         String newName = RenameBodyParser.filename(body);
-        return FileResponse.of(files.rename(RequestUser.owner(request), new FileId(id), newName));
+        return FileResponse.of(files.rename(RequestUser.owner(request), fileId(id), newName));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id, HttpServletRequest request) {
-        files.delete(RequestUser.owner(request), new FileId(id));
+        files.delete(RequestUser.owner(request), fileId(id));
         return ResponseEntity.noContent().build();
     }
 
@@ -77,5 +78,10 @@ public class FilesController {
     @GetMapping("/public")
     public PageResponse publicFiles(HttpServletRequest request) {
         return PageResponse.of(files.list(ListParamsParser.parse(request, FileQuery.publicFiles())));
+    }
+
+    /** An id that can't exist is the same as one that doesn't: 404, like any unknown file. */
+    private static FileId fileId(String id) {
+        return FileId.parse(id).orElseThrow(FileNotFoundException::new);
     }
 }

@@ -1,7 +1,7 @@
 package com.teletronics.storage.presentation.http.response;
 
 import com.teletronics.storage.domain.file.StoredFile;
-import com.teletronics.storage.presentation.http.DownloadController;
+import com.teletronics.storage.presentation.http.FilesController;
 
 import java.time.Instant;
 import java.util.List;
@@ -30,6 +30,6 @@ public record FileResponse(
                 file.sha256().hex(),
                 file.contentType().value(),
                 file.uploadedAt(),
-                DownloadController.PATH + file.downloadToken().value());
+                FilesController.DOWNLOAD_PATH + file.downloadToken().value());
     }
 }

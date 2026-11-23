@@ -57,7 +57,7 @@ The design goal is uploads of any size inside a 1 GB container, with rejections 
 
 - Another user's file is always 404, never 403. An unparseable id or token is also 404.
 - Problem `type` values are in `ProblemTypes`. Spring 7 omits `type` when it is `about:blank`, so tests default it.
-- The download link is built in the presentation layer (`DownloadController.PATH` + token); the domain doesn't know URLs or header names.
+- The download link is built in the presentation layer (`FilesController.DOWNLOAD_PATH` + token); the domain doesn't know URLs or header names.
 - `uploadedAt` is truncated to milliseconds so every store returns the same value.
 - The 200 MB disk limit is met by never spooling to disk: don't introduce temp files or multipart parsing on the upload or download path.
 

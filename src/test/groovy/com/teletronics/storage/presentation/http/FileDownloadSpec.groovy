@@ -16,8 +16,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * GET /download/{token} with the file service faked (docs/acceptance-criteria/http-api.md, API-30).
  */
-@WebMvcTest(controllers = [DownloadController])
-class DownloadControllerSpec extends Specification {
+@WebMvcTest(controllers = [FilesController])
+class FileDownloadSpec extends Specification {
 
     @Autowired
     MockMvc mvc

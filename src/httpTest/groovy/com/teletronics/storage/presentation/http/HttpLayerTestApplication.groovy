@@ -16,6 +16,6 @@ import org.springframework.context.annotation.Import
         "org.springframework.boot.data.mongodb.autoconfigure.DataMongoAutoConfiguration",
         "org.springframework.boot.data.mongodb.autoconfigure.DataMongoRepositoriesAutoConfiguration",
 ])
-@Import([FilesController, DownloadController, ProblemDetailsAdvice, TomcatContinueTimingCustomizer])
+@Import([FilesController, ProblemDetailsAdvice, TomcatContinueTimingCustomizer])
 class HttpLayerTestApplication {
 }

@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
-import static com.teletronics.storage.infrastructure.storage.s3.PartSizePolicy.MIB
+import static com.teletronics.storage.infrastructure.storage.s3.S3PartSizePolicy.MIB
 import static com.teletronics.storage.testing.TestBytes.random
 
 /**
@@ -37,7 +37,7 @@ class S3BlobStoreRetrySpec extends Specification {
                 .forcePathStyle(true)
                 .httpClientBuilder(Apache5HttpClient.builder())
                 .build()
-        store = new S3BlobStore(s3, "files", PartSizePolicy.standard())
+        store = new S3BlobStore(s3, "files", S3PartSizePolicy.standard())
     }
 
     def cleanup() {

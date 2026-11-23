@@ -47,11 +47,11 @@ public class S3BlobStore implements BlobStore {
 
     private final S3Client s3;
     private final String bucket;
-    private final PartSizePolicy parts;
+    private final S3PartSizePolicy partSizePolicy;
 
     @Override
     public long partSizeFor(OptionalLong declaredLength) {
-        return parts.partSizeFor(declaredLength);
+        return partSizePolicy.partSizeFor(declaredLength);
     }
 
     @Override
@@ -113,8 +113,8 @@ public class S3BlobStore implements BlobStore {
             int length = firstLength;
             while (length > 0) {
                 int partNumber = completed.size() + 1;
-                if (partNumber > parts.maxParts()) {
-                    throw new FileTooLargeException("the file needs more than " + parts.maxParts()
+                if (partNumber > partSizePolicy.maxParts()) {
+                    throw new FileTooLargeException("the file needs more than " + partSizePolicy.maxParts()
                             + " parts of " + buffer.length + " bytes");
                 }
                 String eTag = s3.uploadPart(UploadPartRequest.builder()

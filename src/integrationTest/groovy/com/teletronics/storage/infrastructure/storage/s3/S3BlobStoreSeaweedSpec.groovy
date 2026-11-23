@@ -14,7 +14,7 @@ import spock.lang.Specification
 
 import java.security.MessageDigest
 
-import static com.teletronics.storage.infrastructure.storage.s3.PartSizePolicy.MIB
+import static com.teletronics.storage.infrastructure.storage.s3.S3PartSizePolicy.MIB
 import static com.teletronics.storage.testing.TestBytes.random
 
 /**
@@ -42,7 +42,7 @@ class S3BlobStoreSeaweedSpec extends Specification {
                 .forcePathStyle(true)
                 .httpClientBuilder(Apache5HttpClient.builder())
                 .build()
-        store = new S3BlobStore(s3, "files", PartSizePolicy.standard())
+        store = new S3BlobStore(s3, "files", S3PartSizePolicy.standard())
         store.ensureBucket()
     }
 
@@ -80,7 +80,7 @@ class S3BlobStoreSeaweedSpec extends Specification {
 
     def "STO-05 a multipart write of unknown length reads back identical"() {
         given: "an adapter with small parts, so a 21 MiB chunked body takes five parts"
-        def small = new S3BlobStore(s3, "files", new PartSizePolicy(5 * MIB, 5 * MIB, 10_000))
+        def small = new S3BlobStore(s3, "files", new S3PartSizePolicy(5 * MIB, 5 * MIB, 10_000))
         def key = StorageKey.random()
         byte[] content = random(21 * MIB)
 

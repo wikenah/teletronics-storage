@@ -31,7 +31,7 @@ public class S3ClientConfig {
 
     @Bean
     S3BlobStore s3BlobStore(S3Client s3, S3Properties properties) {
-        S3BlobStore store = new S3BlobStore(s3, properties.bucket(), PartSizePolicy.standard());
+        S3BlobStore store = new S3BlobStore(s3, properties.bucket(), S3PartSizePolicy.standard());
         if (properties.ensureBucket()) {
             store.ensureBucket();
         }

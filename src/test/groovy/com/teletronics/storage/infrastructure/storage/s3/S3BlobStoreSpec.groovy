@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 import java.security.MessageDigest
 
-import static com.teletronics.storage.infrastructure.storage.s3.PartSizePolicy.MIB
+import static com.teletronics.storage.infrastructure.storage.s3.S3PartSizePolicy.MIB
 import static com.teletronics.storage.testing.TestBytes.random
 
 /**
@@ -30,7 +30,7 @@ import static com.teletronics.storage.testing.TestBytes.random
 class S3BlobStoreSpec extends Specification {
 
     def s3 = Mock(S3Client)
-    def store = new S3BlobStore(s3, "files", PartSizePolicy.standard())
+    def store = new S3BlobStore(s3, "files", S3PartSizePolicy.standard())
     def key = StorageKey.random()
 
     def "STO-04 a body that fits in the first buffer is written with one PutObject (#length)"() {
@@ -75,7 +75,7 @@ class S3BlobStoreSpec extends Specification {
 
     def "STO-05 part size follows the declared length (#description)"() {
         expect: "every part except the last is #expected and at most 10,000 parts are used"
-        PartSizePolicy.standard().partSizeFor(length) == expected
+        S3PartSizePolicy.standard().partSizeFor(length) == expected
         length.isEmpty() || Math.ceil(length.asLong / (double) expected) <= 10_000
 
         where:
@@ -186,7 +186,7 @@ class S3BlobStoreSpec extends Specification {
 
     def "STO-10 a chunked upload that needs more parts than allowed is aborted and refused as too large"() {
         given: "parts of 4 bytes and at most 3 parts"
-        def tiny = new S3BlobStore(s3, "files", new PartSizePolicy(4, 4, 3))
+        def tiny = new S3BlobStore(s3, "files", new S3PartSizePolicy(4, 4, 3))
         s3.createMultipartUpload(_) >> CreateMultipartUploadResponse.builder().uploadId("u1").build()
 
         when: "a 13-byte body of unknown length is written"

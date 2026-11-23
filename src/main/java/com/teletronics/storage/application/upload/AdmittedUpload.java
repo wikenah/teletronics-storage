@@ -40,22 +40,12 @@ public final class AdmittedUpload implements PendingUpload {
         StorageKey key = StorageKey.random();
         DigestingInputStream digesting = new DigestingInputStream(body, detector.prefixLength());
         blobs.store(key, digesting, command.declaredLength());
-        requireComplete(key, digesting.count());
-        StoredFile file = newFile(key, digesting);
-        try {
-            files.insert(file);
-            return file;
-        } catch (RepositoryDuplicateException e) {
-            deleteBytes(key, "lost a duplicate race");
-            throw duplicateOf(file, e);
-        } catch (RuntimeException e) {
-            deleteBytes(key, "record insert failed");
-            throw e;
-        }
+        validateComplete(key, digesting.count());
+        return insert(newFile(key, digesting));
     }
 
     /** A body that ended before its declared Content-Length is not a file: its bytes are deleted. */
-    private void requireComplete(StorageKey key, long received) {
+    private void validateComplete(StorageKey key, long received) {
         OptionalLong declaredLength = command.declaredLength();
         if (declaredLength.isPresent() && declaredLength.getAsLong() != received) {
             deleteBytes(key, "body shorter than Content-Length");
@@ -70,6 +60,20 @@ public final class AdmittedUpload implements PendingUpload {
                 .orElseGet(() -> detector.detect(digesting.prefix(), command.filename()));
         return StoredFile.create(command.userId(), command.filename(), command.visibility(),
                 command.tags(), digesting.count(), digesting.sha256(), contentType, uploadedAt(), key);
+    }
+
+    /** Bytes first, record after: if the record can't be inserted, its bytes are deleted. */
+    private StoredFile insert(StoredFile file) {
+        try {
+            files.insert(file);
+            return file;
+        } catch (RepositoryDuplicateException e) {
+            deleteBytes(file.storageKey(), "lost a duplicate race");
+            throw duplicateOf(file, e);
+        } catch (RuntimeException e) {
+            deleteBytes(file.storageKey(), "record insert failed");
+            throw e;
+        }
     }
 
     @Override

@@ -37,6 +37,7 @@ This is the proof that the MiB budget (Storage decision 2) and the JVM settings 
 - Spring Boot 4.1's documented layered pattern: a multi-stage build that runs `java -Djarmode=tools -jar application.jar extract --layers --destination extracted` and starts with `ENTRYPOINT ["java", "-jar", "application.jar"]` in exec form. Docker warns that a shell-form entrypoint keeps the process from receiving SIGTERM.
 - The base image is pinned by digest, so builds are repeatable.
 - JVM options are set explicitly in the file (`JAVA_TOOL_OPTIONS`, decision S2), so the heap is fixed and visible.
+- The process runs as an unprivileged user (uid 10001), not root.
 - **Not chosen: `bootBuildImage` (Paketo).** Its memory calculator computes the heap at startup: heap = container memory − (10 MB direct + metaspace estimated from the class count + 240 MB code cache + 250 × 1 MB thread stacks). The result depends on the class count and the builder version, and drifts with `:latest`. Our heap must match the upload budget, so it can't be left to a calculation.
 
 ### S2. JVM memory inside the 1 GB container

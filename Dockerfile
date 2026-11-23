@@ -13,6 +13,9 @@ COPY --from=builder /builder/extracted/dependencies/ ./
 COPY --from=builder /builder/extracted/spring-boot-loader/ ./
 COPY --from=builder /builder/extracted/snapshot-dependencies/ ./
 COPY --from=builder /builder/extracted/application/ ./
+# Run as an unprivileged user. The app writes nothing under /application.
+RUN useradd --system --no-create-home --uid 10001 app
+USER 10001
 # Heap 55% of the container limit, bounded direct memory, exit cleanly on OOM, no heap dump (decision S2).
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=55 -XX:MaxDirectMemorySize=64m -XX:+ExitOnOutOfMemoryError"
 EXPOSE 8080

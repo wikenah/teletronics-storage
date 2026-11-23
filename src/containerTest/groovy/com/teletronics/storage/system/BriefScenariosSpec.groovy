@@ -128,7 +128,7 @@ class BriefScenariosSpec extends Specification {
         and: "the link downloads the same bytes under the new name"
         def download = api.download(original.downloadLink)
         download.body == content
-        download.header("Content-Disposition").contains('filename="final.txt"')
+        download.header("Content-Disposition").endsWith("filename*=UTF-8''final.txt")
     }
 
     def "A rename is refused onto a name the user already has, and for someone else's file"() {
@@ -407,7 +407,7 @@ class BriefScenariosSpec extends Specification {
         response.body == content
         response.header("Content-Length") == String.valueOf(content.length)
         response.header("Content-Type") == "application/pdf"
-        response.header("Content-Disposition") == "attachment; filename=\"shared report.pdf\"; filename*=UTF-8''shared%20report.pdf"
+        response.header("Content-Disposition") == "attachment; filename*=UTF-8''shared%20report.pdf"
         response.header("X-Content-Type-Options") == "nosniff"
 
         where:

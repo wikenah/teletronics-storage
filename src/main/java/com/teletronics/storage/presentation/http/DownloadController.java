@@ -4,11 +4,11 @@ import com.teletronics.storage.application.Download;
 import com.teletronics.storage.application.FileService;
 import com.teletronics.storage.domain.file.StoredFile;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +17,8 @@ import java.nio.charset.StandardCharsets;
 /**
  * Download by link: anyone holding the token gets the bytes, PUBLIC or PRIVATE (domain decision 8).
  * Bytes are copied straight to the response through a fixed-size buffer. A Range header is ignored:
- * the whole file is sent with 200 (API-30).
+ * the whole file is sent with 200 (API-30). The filename is sent once, exactly, in the RFC 8187 form
+ * {@code filename*=UTF-8''...}; there is no second, ASCII-only copy of the name.
  */
 @RestController
 public class DownloadController {
@@ -40,8 +41,7 @@ public class DownloadController {
             response.setContentType(file.contentType().value());
             response.setContentLengthLong(file.size());
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                    ContentDisposition.attachment().filename(file.filename().value(), StandardCharsets.UTF_8)
-                            .build().toString());
+                    "attachment; filename*=UTF-8''" + UriUtils.encode(file.filename().value(), StandardCharsets.UTF_8));
             response.setHeader("X-Content-Type-Options", "nosniff");
             body.transferTo(response.getOutputStream());
         }

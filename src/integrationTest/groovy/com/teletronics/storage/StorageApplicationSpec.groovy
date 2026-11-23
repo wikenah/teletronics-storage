@@ -137,7 +137,7 @@ class StorageApplicationSpec extends Specification {
         file.size == content.length
 
         and: "with the download headers"
-        response.header("Content-Disposition") == "attachment; filename=\"big.bin\"; filename*=UTF-8''big.bin"
+        response.header("Content-Disposition") == "attachment; filename*=UTF-8''big.bin"
         response.header("X-Content-Type-Options") == "nosniff"
     }
 

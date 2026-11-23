@@ -34,7 +34,7 @@ curl 'http://localhost:8080/files/public?sort=filename,asc'
 # Rename, download by link, delete
 curl -X PATCH -H 'X-User-Id: alice' -H 'Content-Type: application/json' \
   -d '{"filename": "final.pdf"}' http://localhost:8080/files/{id}
-curl -OJ http://localhost:8080/download/{token}
+curl -o final.pdf http://localhost:8080/download/{token}
 curl -X DELETE -H 'X-User-Id: alice' http://localhost:8080/files/{id}
 ```
 
@@ -69,7 +69,7 @@ The brief has no user management, so the caller's id comes in the `X-User-Id` he
 **Files and links**
 - A file is shown as `id`, `filename`, `visibility`, `tags`, `size`, `sha256`, `contentType`, `uploadedAt` and `downloadLink`. The owner's id is never shown.
 - Another user's file is reported as 404, never 403, so nobody can probe which ids exist.
-- The download link carries a 128-bit random token. It works for PUBLIC and PRIVATE files and survives a rename. Downloads are sent as attachments with `X-Content-Type-Options: nosniff`.
+- The download link carries a 128-bit random token. It works for PUBLIC and PRIVATE files and survives a rename. Downloads are sent as attachments with `X-Content-Type-Options: nosniff`; the filename travels as `filename*=UTF-8''…`, which browsers use and `curl -J` doesn't.
 
 ### Errors
 

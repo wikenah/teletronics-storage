@@ -347,14 +347,14 @@ When anyone sends GET /download/T
 Then the response is 200 with the file's bytes, streamed
 And Content-Type is application/pdf
 And Content-Length is N
-And Content-Disposition is attachment with filename="resume final.pdf" and filename*=UTF-8''r%C3%A9sum%C3%A9%20final.pdf
+And Content-Disposition is attachment with filename*=UTF-8''r%C3%A9sum%C3%A9%20final.pdf
 And X-Content-Type-Options is nosniff
 ```
 And:
 - An unknown token → 404 `/problems/file-not-found`.
 - No `X-User-Id` is needed.
 - A `Range` header is ignored and the full file returned with 200 (RFC 9110: "A server MAY ignore the Range header field"). Range support, i.e. resuming a download, is documented, not built.
-- RFC 6266: send both "the more expressive "filename*" parameter, and the "filename" parameter as fallback". Built with Spring's `ContentDisposition` (`attachment().filename(name, UTF_8)`), which writes both parameters: in the ASCII fallback an accented letter becomes its base letter (`é` → `e`, `ä` → `ae`) and any other non-ASCII character becomes `_`.
+- The name is sent once, exactly, as `filename*=UTF-8''…` (RFC 8187 percent-encoding). RFC 6266 suggests also sending a plain `filename` as an ASCII-only fallback for old clients; that is not built, so no second, altered copy of the name exists. Known cost: `curl -OJ` ignores `filename*` (checked with curl 8.7.1) and saves under the token, so the README uses `curl -o`.
 
 Test level: controller and HTTP.
 
@@ -437,4 +437,4 @@ With a 256 MiB budget, the largest part is 256 MiB, so the largest file is about
     - Separate `/files/public` path.
     - Spring Data parameter names with an allow-list, and our own page DTO.
     - One `/problems/invalid-request` type for every endpoint, renamed from the upload-only one.
-    - Download sends `attachment` with `filename` + `filename*`, plus `nosniff`. `Range` is ignored (not built).
+    - Download sends `attachment` with the exact name in `filename*` (no ASCII fallback), plus `nosniff`. `Range` is ignored (not built).

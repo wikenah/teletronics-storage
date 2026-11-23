@@ -49,7 +49,7 @@ Starting values, confirmed by measurement (baseline heap after startup, then SYS
 | Direct memory | `-XX:MaxDirectMemorySize=64m` | Its default equals the heap size. |
 | Out of memory | `-XX:+ExitOnOutOfMemoryError`, no `HeapDumpOnOutOfMemoryError` | A clean, visible exit; a heap-sized dump would break the 200 MB disk. |
 | Garbage collector | The JVM's own choice, Serial, stated in the docs | Java picks Serial below a "server-class machine" (two or more processors and at least 1,792 MB). Fine for this workload. |
-| Upload buffer budget | `uploads.buffer-budget=256` MiB | Inside the heap (Storage decision 2). |
+| Upload buffer budget | `uploads.buffer-budget-mib=256` | Inside the heap (Storage decision 2). |
 
 Memory outside the heap to keep in mind: metaspace (unbounded by default), code cache (240 MB reserved by default, committed as code is compiled), thread stacks (1 MB each on x64, committed as used; up to 200 Tomcat threads), direct buffers (64 MiB). The proposal to raise Java's container default to 75% (JDK-8356194, PR 25086) was closed without being integrated, so the default stays at 25%.
 

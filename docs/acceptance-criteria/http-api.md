@@ -327,7 +327,7 @@ Then the response is <result>
 - `sort=size,sideways` / 400.
 - `size=101` / 400.
 - `page=-1` / 400.
-- `tag=a,b` / 400 (comma, as API-04).
+- `tag=a,b` / 400 (Spring splits the value, so it counts as two tags, like `tag=a&tag=b`).
 - `tag=a&tag=b` / 400 (one tag only).
 
 Spring Data's parameter naming (`page` from 0, `size`, `sort=property,direction`), checked against an allow-list. The response is our own DTO, not Spring Data's `Page`, whose JSON "could change over time". Test level: controller.
@@ -387,7 +387,7 @@ With a 256 MiB budget, the largest part is 256 MiB, so the largest file is about
 | `server.tomcat.connection-timeout` = 60s (Tomcat's default, set explicitly) | Idle timeout per read, not total. | API-19, API-20 |
 | `server.tomcat.max-swallow-size` = 2MB (default) | Bounds what Tomcat drains after an early rejection without `Expect`. | API-14, API-16 |
 | Handler takes `HttpServletRequest`, never `@RequestBody`; params via `getParameterValues`; no body-caching filter (e.g. `ContentCachingRequestWrapper`) on `/files` | Anything that reads the body before our checks would trigger the 100 Continue early or buffer the body (`@RequestBody` peeks one byte). | API-06, API-13, API-18 |
-| `uploads.buffer-budget` (our property, MiB; starting point 256, confirmed by measurement) | The upload cap: a `Semaphore` whose permits are MiB of part buffers. Size = measured heap − app baseline − margin. The storage client pool must allow at least as many connections as uploads the budget admits (decision 3 in Storage). | API-21 to API-23, API-32 |
+| `uploads.buffer-budget-mib` (our property, MiB; starting point 256, confirmed by measurement) | The upload cap: a `Semaphore` whose permits are MiB of part buffers. Size = measured heap − app baseline − margin. The storage client pool must allow at least as many connections as uploads the budget admits (decision 3 in Storage). | API-21 to API-23, API-32 |
 
 ## Decisions (all closed)
 

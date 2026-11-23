@@ -46,11 +46,7 @@ public final class AdmittedUpload implements PendingUpload {
             deleteBytes(key, "body shorter than Content-Length");
             throw new IncompleteUploadException("received " + size + " of " + declaredLength.getAsLong() + " bytes");
         }
-        ContentType contentType = command.declaredContentType()
-                .filter(type -> !type.isGeneric())
-                .orElseGet(() -> detector.detect(digesting.prefix(), command.filename()));
-        StoredFile file = StoredFile.create(command.userId(), command.filename(), command.visibility(),
-                command.tags(), size, digesting.sha256(), contentType, uploadedAt(), key);
+        StoredFile file = newFile(key, digesting);
         try {
             files.insert(file);
             return file;
@@ -61,6 +57,15 @@ public final class AdmittedUpload implements PendingUpload {
             deleteBytes(key, "record insert failed");
             throw e;
         }
+    }
+
+    /** The record for the stored bytes: what the client declared, plus what was measured while streaming. */
+    private StoredFile newFile(StorageKey key, DigestingInputStream digesting) {
+        ContentType contentType = command.declaredContentType()
+                .filter(type -> !type.isGeneric())
+                .orElseGet(() -> detector.detect(digesting.prefix(), command.filename()));
+        return StoredFile.create(command.userId(), command.filename(), command.visibility(),
+                command.tags(), digesting.count(), digesting.sha256(), contentType, uploadedAt(), key);
     }
 
     @Override

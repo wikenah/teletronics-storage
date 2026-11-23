@@ -52,6 +52,36 @@ Starting values, confirmed by measurement (baseline heap after startup, then SYS
 
 Memory outside the heap to keep in mind: metaspace (unbounded by default), code cache (240 MB reserved by default, committed as code is compiled), thread stacks (1 MB each on x64, committed as used; up to 200 Tomcat threads), direct buffers (64 MiB). The proposal to raise Java's container default to 75% (JDK-8356194, PR 25086) was closed without being integrated, so the default stays at 25%.
 
+#### Measured (build, Nov 2026, docker compose on Docker Desktop)
+
+**Idle, after startup: 295 MiB of container memory.** Read with Native Memory Tracking and `jcmd` from a JDK sidecar container.
+
+| Part | MiB |
+|---|---|
+| Java heap, committed | 64 (about 30 in use) |
+| Class metadata (metaspace, class space, shared archive) | 70 |
+| Symbols | 20 |
+| JIT-compiled code | 16 |
+| Thread stacks, other | 7 |
+| Freed by the JVM but kept by the C library (mostly JIT compiler scratch memory, peak 41 MB) | about 70; `System.trim_native_heap` returned 51 |
+| Page cache (jar and JDK files; reclaimable) | 43 |
+
+**One 2 GiB upload** raised container memory by about 50 MiB at most. That is one 8 MiB part buffer, 7 MiB of kernel socket buffers, one-time JIT and class loading, and heap slack. SYS-01's `memory.peak` of 333 MB is mostly the idle baseline.
+
+**Parallel uploads.** N uploads of 24 MiB each, throttled to 1 MiB/s so all are in flight together. The live heap is read after a forced full GC, compared with idle just before.
+
+| N | Live heap added | Per admitted upload | Responses |
+|---|---|---|---|
+| 1 | 8.4 MiB | 8.35 MiB | 1× 201 |
+| 8 | 67.5 MiB | 8.44 MiB | 8× 201 |
+| 16 | 135.7 MiB | 8.48 MiB | 16× 201 |
+| 32 | 272.7 MiB | 8.52 MiB | 32× 201 |
+| 40 | 266.7 MiB | 8.33 MiB | 32× 201, 8× 503 |
+
+- Each upload holds its 8 MiB part buffer plus about 0.4 MiB of other request state. The budget counts only the part buffer, so a full budget (32 uploads) uses about 16 MiB more than its 256 MiB, well within the heap's headroom.
+- Past the budget, uploads are refused at once: 40 started, 32 admitted, 8 got 503 `upload-capacity-reached`, and the live heap stayed at the 32-upload level.
+- Container memory grew less than the live heap (e.g. +195 MiB at N = 32), because earlier runs had already made heap pages resident. The live heap is the reliable measure.
+
 ### S3. The 200 MB disk limit is measured, not enforced
 - **How:**
   - Read the container's writable-layer size `SizeRw` (`inspectContainerCmd(id).withSize(true)`) before and after the upload, and require growth far below 200 MB (e.g. < 20 MB).

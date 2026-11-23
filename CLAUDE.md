@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 STORAGE: a REST file storage and sharing API, built as an interview test project. Java 21, Spring Boot 4.1.3 (Spring 7, Tomcat 11, Jackson 3), MongoDB 8.0 for metadata, SeaweedFS (S3-compatible) for the bytes, Apache Tika for type detection, Spock 2.5 (Groovy 5) for tests. The README describes the API, the error table and how to run it.
 
+Lombok is used in the main code only for boilerplate: `@RequiredArgsConstructor`, `@Slf4j` and `@UtilityClass` (the static request helpers). The domain layer doesn't use it.
+
 Boot 4 moved many classes: check an existing import before assuming a Boot 3 package name (e.g. `org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest`, `org.springframework.boot.mongodb.autoconfigure.*`, `org.testcontainers.mongodb.MongoDBContainer`).
 
 ## Commands

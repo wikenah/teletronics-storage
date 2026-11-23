@@ -11,8 +11,7 @@ import com.teletronics.storage.domain.file.exception.RepositoryUnavailableExcept
 import com.teletronics.storage.presentation.http.exception.FormBodyNotSupportedException;
 import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
 import com.teletronics.storage.presentation.http.exception.UnsupportedContentEncodingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -33,9 +32,8 @@ import java.util.Map;
  * A 500 never exposes internal details.
  */
 @RestControllerAdvice
+@Slf4j
 public class ProblemDetailsAdvice extends ResponseEntityExceptionHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(ProblemDetailsAdvice.class);
 
     @ExceptionHandler(InvalidFileException.class)
     ResponseEntity<ProblemDetail> invalidFile(InvalidFileException e) {

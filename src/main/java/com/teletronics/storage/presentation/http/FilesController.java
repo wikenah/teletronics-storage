@@ -1,7 +1,7 @@
 package com.teletronics.storage.presentation.http;
 
-import com.teletronics.storage.application.download.Download;
 import com.teletronics.storage.application.FileService;
+import com.teletronics.storage.application.download.Download;
 import com.teletronics.storage.application.upload.PendingUpload;
 import com.teletronics.storage.domain.file.StoredFile;
 import com.teletronics.storage.domain.file.exception.FileNotFoundException;
@@ -16,6 +16,7 @@ import com.teletronics.storage.presentation.http.response.FileResponse;
 import com.teletronics.storage.presentation.http.response.PageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,15 +41,12 @@ import java.util.Map;
  * so that a rejection reaches the client before it sends any body byte.
  */
 @RestController
+@RequiredArgsConstructor
 public class FilesController {
 
     private static final String FILES = "/files";
 
     private final FileService files;
-
-    public FilesController(FileService files) {
-        this.files = files;
-    }
 
     @PostMapping(FILES)
     public ResponseEntity<FileResponse> upload(HttpServletRequest request) throws IOException {

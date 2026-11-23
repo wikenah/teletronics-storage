@@ -5,6 +5,7 @@ import com.teletronics.storage.domain.file.query.SortField;
 import com.teletronics.storage.domain.file.valueobject.Tag;
 import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.experimental.UtilityClass;
 
 import java.util.Map;
 
@@ -12,7 +13,8 @@ import java.util.Map;
  * Listing parameters in Spring Data's naming (page from 0, size, sort=field,direction) plus one optional tag.
  * Sort fields come from an allow-list, so a client can never sort by an internal field (API-28).
  */
-public final class ListParamsParser {
+@UtilityClass
+public class ListParamsParser {
 
     private static final Map<String, SortField> SORT_FIELDS = Map.of(
             "filename", SortField.FILENAME,
@@ -20,9 +22,6 @@ public final class ListParamsParser {
             "tag", SortField.TAG,
             "contentType", SortField.CONTENT_TYPE,
             "size", SortField.SIZE);
-
-    private ListParamsParser() {
-    }
 
     public static FileQuery parse(HttpServletRequest request, FileQuery base) {
         FileQuery query = base.page(integer(request, "page", 0), integer(request, "size", FileQuery.DEFAULT_SIZE));

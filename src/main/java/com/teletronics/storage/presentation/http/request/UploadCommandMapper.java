@@ -2,6 +2,7 @@ package com.teletronics.storage.presentation.http.request;
 
 import com.teletronics.storage.application.upload.UploadCommand;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,10 +13,8 @@ import java.util.OptionalLong;
  * body. The filename, visibility and tags are checked by their own types when the command is built
  * (API-01 to API-04).
  */
-public final class UploadCommandMapper {
-
-    private UploadCommandMapper() {
-    }
+@UtilityClass
+public class UploadCommandMapper {
 
     public static UploadCommand toCommand(HttpServletRequest request) {
         String[] tags = request.getParameterValues("tags");

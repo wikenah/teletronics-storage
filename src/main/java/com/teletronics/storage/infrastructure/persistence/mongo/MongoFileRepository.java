@@ -11,6 +11,7 @@ import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.domain.file.valueobject.OwnerId;
 import com.teletronics.storage.domain.file.valueobject.Sha256;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.TransientDataAccessException;
@@ -31,13 +32,10 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
  * never while a body streams (DOM-18).
  */
 @Repository
+@RequiredArgsConstructor
 public class MongoFileRepository implements FileRepository {
 
     private final MongoOperations mongo;
-
-    public MongoFileRepository(MongoOperations mongo) {
-        this.mongo = mongo;
-    }
 
     @Override
     public Optional<StoredFile> findById(FileId id) {

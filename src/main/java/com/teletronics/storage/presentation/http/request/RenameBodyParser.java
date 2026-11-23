@@ -1,6 +1,7 @@
 package com.teletronics.storage.presentation.http.request;
 
 import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
+import lombok.experimental.UtilityClass;
 
 import java.util.Map;
 import java.util.Set;
@@ -9,10 +10,8 @@ import java.util.Set;
  * A rename body is exactly {"filename": string}. Jackson 3 ignores unknown properties by default,
  * so the keys are checked here (API-26): only the name can change.
  */
-public final class RenameBodyParser {
-
-    private RenameBodyParser() {
-    }
+@UtilityClass
+public class RenameBodyParser {
 
     public static String filename(Map<String, Object> body) {
         if (body == null || !body.keySet().equals(Set.of("filename"))) {

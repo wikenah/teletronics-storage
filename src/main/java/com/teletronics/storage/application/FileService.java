@@ -22,8 +22,8 @@ import com.teletronics.storage.domain.file.valueobject.DownloadToken;
 import com.teletronics.storage.domain.file.valueobject.FileId;
 import com.teletronics.storage.domain.file.valueobject.Filename;
 import com.teletronics.storage.domain.file.valueobject.OwnerId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -32,24 +32,15 @@ import java.time.Clock;
  * The file use cases. The upload itself, once admitted, is carried out by {@link AdmittedUpload}.
  */
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class FileService {
-
-    private static final Logger log = LoggerFactory.getLogger(FileService.class);
 
     private final FileRepository files;
     private final BlobStore blobs;
     private final ContentTypeDetector detector;
     private final UploadBudget budget;
     private final Clock clock;
-
-    public FileService(FileRepository files, BlobStore blobs, ContentTypeDetector detector,
-                       UploadBudget budget, Clock clock) {
-        this.files = files;
-        this.blobs = blobs;
-        this.detector = detector;
-        this.budget = budget;
-        this.clock = clock;
-    }
 
     /**
      * The checks that need no body: the memory budget and the filename pre-check. The command's values

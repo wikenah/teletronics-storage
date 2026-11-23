@@ -5,8 +5,8 @@ import com.teletronics.storage.application.exception.FileTooLargeException;
 import com.teletronics.storage.application.exception.StorageUnavailableException;
 import com.teletronics.storage.application.port.BlobStore;
 import com.teletronics.storage.domain.file.valueobject.StorageKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -39,21 +39,15 @@ import java.util.function.Supplier;
  * One part is buffered in memory and parts are sent one at a time, so the SDK can retry a failed part from
  * the buffer. A body that fits in the first buffer is written with a single PutObject (Storage decision 2).
  */
+@Slf4j
+@RequiredArgsConstructor
 public class S3BlobStore implements BlobStore {
-
-    private static final Logger log = LoggerFactory.getLogger(S3BlobStore.class);
     private static final String BINARY = "application/octet-stream";
     private static final long MAX_BUFFER = Integer.MAX_VALUE - 8;
 
     private final S3Client s3;
     private final String bucket;
     private final PartSizePolicy parts;
-
-    public S3BlobStore(S3Client s3, String bucket, PartSizePolicy parts) {
-        this.s3 = s3;
-        this.bucket = bucket;
-        this.parts = parts;
-    }
 
     @Override
     public long partSizeFor(OptionalLong declaredLength) {

@@ -9,8 +9,8 @@ import com.teletronics.storage.domain.file.exception.DuplicateFileException.Kind
 import com.teletronics.storage.domain.file.exception.RepositoryDuplicateException;
 import com.teletronics.storage.domain.file.valueobject.ContentType;
 import com.teletronics.storage.domain.file.valueobject.StorageKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.time.Clock;
@@ -24,9 +24,9 @@ import java.util.OptionalLong;
  * Bytes first, record after: the unique indexes decide duplicates at insert, and bytes without a record
  * are deleted (Domain decisions 1 and 5).
  */
+@Slf4j
+@RequiredArgsConstructor
 public final class AdmittedUpload implements PendingUpload {
-
-    private static final Logger log = LoggerFactory.getLogger(AdmittedUpload.class);
 
     private final FileRepository files;
     private final BlobStore blobs;
@@ -34,16 +34,6 @@ public final class AdmittedUpload implements PendingUpload {
     private final Clock clock;
     private final UploadCommand command;
     private final UploadBudget.Reservation reservation;
-
-    public AdmittedUpload(FileRepository files, BlobStore blobs, ContentTypeDetector detector, Clock clock,
-                          UploadCommand command, UploadBudget.Reservation reservation) {
-        this.files = files;
-        this.blobs = blobs;
-        this.detector = detector;
-        this.clock = clock;
-        this.command = command;
-        this.reservation = reservation;
-    }
 
     @Override
     public StoredFile complete(InputStream body) {

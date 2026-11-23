@@ -33,6 +33,10 @@ dependencies {
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:apache5-client'
     implementation 'org.apache.tika:tika-core:4.2.0'
+
+    // Compile-time only: generates constructors, loggers and utility-class boilerplate.
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 }
 
 // The AWS SDK brings its async Netty client at runtime; we only use the sync Apache 5 client.

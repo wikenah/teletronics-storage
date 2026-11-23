@@ -4,6 +4,7 @@ import com.teletronics.storage.presentation.http.exception.FormBodyNotSupportedE
 import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
 import com.teletronics.storage.presentation.http.exception.UnsupportedContentEncodingException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 
@@ -12,10 +13,8 @@ import org.springframework.http.MediaType;
  * It reads headers only. It must run before anything reads a request parameter: for a form-urlencoded
  * POST, reading parameters would consume the body.
  */
-public final class UploadRequestValidator {
-
-    private UploadRequestValidator() {
-    }
+@UtilityClass
+public class UploadRequestValidator {
 
     public static void validate(HttpServletRequest request) {
         rejectFormBodies(request.getContentType());

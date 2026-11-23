@@ -5,6 +5,7 @@ import com.teletronics.storage.presentation.http.exception.InvalidRequestExcepti
 import com.teletronics.storage.presentation.http.exception.UnsupportedContentEncodingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 
@@ -19,7 +20,7 @@ public class UploadRequestValidator {
     /** The order is part of the API: a form body is refused before anything else is looked at. */
     public static void validate(HttpServletRequest request) {
         rejectFormBody(request.getContentType());
-        rejectCompressedBody(request.getHeader("Content-Encoding"));
+        rejectCompressedBody(request.getHeader(HttpHeaders.CONTENT_ENCODING));
         UserIdValidator.validate(request);
     }
 
@@ -31,7 +32,7 @@ public class UploadRequestValidator {
         try {
             type = MediaType.parseMediaType(contentType);
         } catch (InvalidMediaTypeException e) {
-            throw new InvalidRequestException("Content-Type", "the Content-Type header is not a valid media type");
+            throw new InvalidRequestException(HttpHeaders.CONTENT_TYPE, "the Content-Type header is not a valid media type");
         }
         if (MediaType.MULTIPART_FORM_DATA.includes(type) || MediaType.APPLICATION_FORM_URLENCODED.includes(type)) {
             throw new FormBodyNotSupportedException(type.getType() + "/" + type.getSubtype());

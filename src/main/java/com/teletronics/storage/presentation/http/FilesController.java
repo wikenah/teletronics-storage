@@ -2,7 +2,7 @@ package com.teletronics.storage.presentation.http;
 
 import com.teletronics.storage.application.Download;
 import com.teletronics.storage.application.FileService;
-import com.teletronics.storage.application.PendingUpload;
+import com.teletronics.storage.application.upload.PendingUpload;
 import com.teletronics.storage.domain.file.FileId;
 import com.teletronics.storage.domain.file.FileNotFoundException;
 import com.teletronics.storage.domain.file.FileQuery;
@@ -43,7 +43,6 @@ public class FilesController {
 
     private static final String FILES = "/files";
 
-    /** A file's download link is this path plus its token, relative to the service as the brief asks. */
     public static final String DOWNLOAD_PATH = "/download/";
 
     private final FileService files;
@@ -89,11 +88,6 @@ public class FilesController {
         return PageResponse.of(files.list(ListParamsParser.parse(request, FileQuery.publicFiles())));
     }
 
-    /**
-     * Download by link: anyone holding the token gets the bytes, PUBLIC or PRIVATE. Bytes are copied straight
-     * to the response through a fixed-size buffer. A Range header is ignored: the whole file is sent with 200
-     * (API-30). The filename is sent once, exactly, in the RFC 8187 form {@code filename*=UTF-8''...}.
-     */
     @GetMapping(DOWNLOAD_PATH + "{token}")
     public void download(@PathVariable String token, HttpServletResponse response) throws IOException {
         Download download = files.openDownload(token);

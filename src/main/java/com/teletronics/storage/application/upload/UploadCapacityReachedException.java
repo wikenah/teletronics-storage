@@ -1,4 +1,4 @@
-package com.teletronics.storage.application;
+package com.teletronics.storage.application.upload;
 
 /**
  * The upload memory budget is fully reserved right now. Mapped to 503 /problems/upload-capacity-reached.

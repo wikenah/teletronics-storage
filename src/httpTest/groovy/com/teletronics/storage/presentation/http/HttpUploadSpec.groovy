@@ -2,9 +2,9 @@ package com.teletronics.storage.presentation.http
 
 import com.teletronics.storage.application.FileService
 import com.teletronics.storage.application.port.FileTooLargeException
-import com.teletronics.storage.application.PendingUpload
-import com.teletronics.storage.application.UploadCapacityReachedException
-import com.teletronics.storage.application.UploadCommand
+import com.teletronics.storage.application.upload.PendingUpload
+import com.teletronics.storage.application.upload.UploadCapacityReachedException
+import com.teletronics.storage.application.upload.UploadCommand
 import com.teletronics.storage.domain.file.ContentType
 import com.teletronics.storage.domain.file.DownloadToken
 import com.teletronics.storage.domain.file.DuplicateFileException

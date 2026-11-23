@@ -1,6 +1,6 @@
 package com.teletronics.storage.presentation.http.request;
 
-import com.teletronics.storage.application.UploadCommand;
+import com.teletronics.storage.application.upload.UploadCommand;
 import com.teletronics.storage.presentation.http.problem.FormBodyNotSupportedException;
 import com.teletronics.storage.presentation.http.problem.InvalidRequestException;
 import com.teletronics.storage.presentation.http.problem.UnsupportedContentEncodingException;

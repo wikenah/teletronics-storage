@@ -1,4 +1,4 @@
-package com.teletronics.storage.application;
+package com.teletronics.storage.application.upload;
 
 import java.util.Optional;
 import java.util.concurrent.Semaphore;

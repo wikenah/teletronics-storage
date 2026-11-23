@@ -1,7 +1,7 @@
 package com.teletronics.storage.infrastructure.config;
 
 import com.teletronics.storage.application.FileService;
-import com.teletronics.storage.application.UploadBudget;
+import com.teletronics.storage.application.upload.UploadBudget;
 import com.teletronics.storage.application.port.BlobStore;
 import com.teletronics.storage.application.port.ContentTypeDetector;
 import com.teletronics.storage.domain.file.FileRepository;

@@ -38,7 +38,7 @@ There is no linter or formatter configured. CI (`.github/workflows/ci.yml`) runs
 DDD layers under `com.teletronics.storage`. The dependency rule is a convention, not enforced by a tool: `domain` depends on nothing (no Spring, no Mongo); `application` depends on `domain`; `presentation` and `infrastructure` depend on both.
 
 - `domain/file`: the `StoredFile` aggregate, self-validating value objects (`Filename`, `Tags`, `OwnerId`, `FileId`, `DownloadToken`, …), the `FileRepository` port and its exceptions. Invalid input throws `InvalidFileException(field, message)`.
-- `application`: `FileService` (all use cases), `UploadBudget`, and the outbound ports in `application/port` (`BlobStore`, `ContentTypeDetector`). No Spring annotations here; objects are wired in `infrastructure/config/FileServiceConfig` (the composition root).
+- `application`: `FileService` (all use cases); `application/upload` (the upload command, the pending upload, the memory budget, the hashing stream and their exceptions); the outbound ports in `application/port` (`BlobStore`, `ContentTypeDetector`). No Spring annotations here; objects are wired in `infrastructure/config/FileServiceConfig` (the composition root).
 - `presentation/http`: controllers, request parsers (`request/`), response DTOs (`response/`), `ProblemDetailsAdvice` mapping every exception to RFC 9457 Problem Details (`problem/`).
 - `infrastructure`: `persistence/mongo` (MongoOperations, not Spring Data repositories), `storage/s3` (AWS SDK v2 with the apache5 client), `detection` (Tika).
 

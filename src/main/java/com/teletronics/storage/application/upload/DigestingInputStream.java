@@ -1,4 +1,4 @@
-package com.teletronics.storage.application;
+package com.teletronics.storage.application.upload;
 
 import com.teletronics.storage.domain.file.Sha256;
 
@@ -13,14 +13,14 @@ import java.util.Arrays;
  * Passes the body through unchanged while counting bytes, computing SHA-256 and keeping a copy of the
  * first bytes for type detection. Memory stays fixed whatever the body size.
  */
-class DigestingInputStream extends FilterInputStream {
+public class DigestingInputStream extends FilterInputStream {
 
     private final MessageDigest sha256;
     private final byte[] prefix;
     private int prefixLength;
     private long count;
 
-    DigestingInputStream(InputStream in, int prefixCapacity) {
+    public DigestingInputStream(InputStream in, int prefixCapacity) {
         super(in);
         try {
             this.sha256 = MessageDigest.getInstance("SHA-256");
@@ -69,15 +69,15 @@ class DigestingInputStream extends FilterInputStream {
         }
     }
 
-    long count() {
+    public long count() {
         return count;
     }
 
-    Sha256 sha256() {
+    public Sha256 sha256() {
         return Sha256.of(sha256.digest());
     }
 
-    byte[] prefix() {
+    public byte[] prefix() {
         return Arrays.copyOf(prefix, prefixLength);
     }
 }

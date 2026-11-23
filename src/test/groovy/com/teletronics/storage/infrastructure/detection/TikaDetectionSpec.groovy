@@ -1,8 +1,8 @@
 package com.teletronics.storage.infrastructure.detection
 
 import com.teletronics.storage.application.FileService
-import com.teletronics.storage.application.UploadBudget
-import com.teletronics.storage.application.UploadCommand
+import com.teletronics.storage.application.upload.UploadBudget
+import com.teletronics.storage.application.upload.UploadCommand
 import com.teletronics.storage.testing.InMemoryBlobStore
 import com.teletronics.storage.testing.InMemoryFileRepository
 import spock.lang.Specification

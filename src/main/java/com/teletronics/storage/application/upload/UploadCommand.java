@@ -1,4 +1,4 @@
-package com.teletronics.storage.application;
+package com.teletronics.storage.application.upload;
 
 import com.teletronics.storage.domain.file.ContentType;
 import com.teletronics.storage.domain.file.Filename;

@@ -1,8 +1,8 @@
 package com.teletronics.storage.presentation.http.problem;
 
 import com.teletronics.storage.application.port.FileTooLargeException;
-import com.teletronics.storage.application.IncompleteUploadException;
-import com.teletronics.storage.application.UploadCapacityReachedException;
+import com.teletronics.storage.application.upload.IncompleteUploadException;
+import com.teletronics.storage.application.upload.UploadCapacityReachedException;
 import com.teletronics.storage.application.port.StorageUnavailableException;
 import com.teletronics.storage.domain.file.DuplicateFileException;
 import com.teletronics.storage.domain.file.FileNotFoundException;

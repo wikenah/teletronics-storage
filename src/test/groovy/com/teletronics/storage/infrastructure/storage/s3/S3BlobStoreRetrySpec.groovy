@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import com.teletronics.storage.application.port.StorageUnavailableException
 import com.teletronics.storage.domain.file.StorageKey
+import static com.teletronics.storage.testing.TestBytes.random
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.http.apache5.Apache5HttpClient
@@ -79,12 +80,6 @@ class S3BlobStoreRetrySpec extends Specification {
         and: "AbortMultipartUpload is called and no object exists under the key"
         stub.aborted.contains(key.value())
         !stub.objects.containsKey(key.value())
-    }
-
-    static byte[] random(long size) {
-        def bytes = new byte[(int) size]
-        new Random(size).nextBytes(bytes)
-        bytes
     }
 
     /**

@@ -3,6 +3,7 @@ package com.teletronics.storage.infrastructure.storage.s3
 import com.teletronics.storage.application.port.BlobNotFoundException
 import com.teletronics.storage.domain.file.StorageKey
 import com.teletronics.storage.testing.SeaweedFsContainer
+import static com.teletronics.storage.testing.TestBytes.random
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.http.apache5.Apache5HttpClient
@@ -121,12 +122,6 @@ class S3BlobStoreSeaweedSpec extends Specification {
     }
 
     // --- helpers -------------------------------------------------------------------------------------
-
-    static byte[] random(long size) {
-        def bytes = new byte[(int) size]
-        new Random(size).nextBytes(bytes)
-        bytes
-    }
 
     static String sha256(InputStream in) {
         def digest = MessageDigest.getInstance("SHA-256")

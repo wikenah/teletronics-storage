@@ -3,6 +3,7 @@ package com.teletronics.storage.infrastructure.storage.s3
 import com.teletronics.storage.application.port.FileTooLargeException
 import com.teletronics.storage.application.port.StorageUnavailableException
 import com.teletronics.storage.domain.file.StorageKey
+import static com.teletronics.storage.testing.TestBytes.random
 import software.amazon.awssdk.core.exception.SdkClientException
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
@@ -213,12 +214,6 @@ class S3BlobStoreSpec extends Specification {
 
     static byte[] read(RequestBody body) {
         body.contentStreamProvider().newStream().withCloseable { it.readAllBytes() }
-    }
-
-    static byte[] random(long size) {
-        def bytes = new byte[(int) size]
-        new Random(size).nextBytes(bytes)
-        bytes
     }
 
     static class FailingInputStream extends InputStream {

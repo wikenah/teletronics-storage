@@ -2,8 +2,8 @@ package com.teletronics.storage
 
 import com.teletronics.storage.infrastructure.storage.s3.S3Properties
 import com.teletronics.storage.testing.RawHttpClient
+import com.teletronics.storage.testing.StorageApiClient
 import com.teletronics.storage.testing.StorageContainersConfig
-import groovy.json.JsonSlurper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -15,11 +15,9 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import spock.lang.Specification
 
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.security.MessageDigest
 
+import static com.teletronics.storage.testing.TestBytes.random
+import static com.teletronics.storage.testing.TestBytes.sha256
 import static org.springframework.data.mongodb.core.query.Criteria.where
 
 /**
@@ -42,7 +40,9 @@ class StorageApplicationSpec extends Specification {
     @Autowired
     MongoTemplate mongo
 
-    def http = HttpClient.newHttpClient()
+    StorageApiClient getApi() {
+        new StorageApiClient("http://localhost:$port")
+    }
 
     // A user of its own per feature, so features never see each other's files.
     def alice = "alice-" + UUID.randomUUID()
@@ -64,7 +64,7 @@ class StorageApplicationSpec extends Specification {
         loser.json().existingFile.id == results.find { it.status == 201 }.json().id
 
         and: "exactly one record named \"report.pdf\" exists for alice"
-        list(alice).items*.filename == ["report.pdf"]
+        api.myFiles(alice).json().items*.filename == ["report.pdf"]
 
         and: "the losing upload's stored bytes have been deleted"
         objectCount() == objectsBefore + 1
@@ -83,7 +83,7 @@ class StorageApplicationSpec extends Specification {
         results.find { it.status == 409 }.problemType() == "/problems/content-exists"
 
         and: "exactly one record with content C exists for alice"
-        list(alice).items.size() == 1
+        api.myFiles(alice).json().items.size() == 1
 
         and: "the losing upload's stored bytes have been deleted"
         objectCount() == objectsBefore + 1
@@ -94,15 +94,15 @@ class StorageApplicationSpec extends Specification {
         def file = upload(alice, "f.txt", "alice's bytes".bytes, "PRIVATE")
 
         when: "bob tries to delete F"
-        def response = send(HttpRequest.newBuilder(url("/files/${file.id}")).header("X-User-Id", bob).DELETE())
+        def response = api.delete(bob, file.id)
 
         then: "it is rejected as not found (bob can't tell F exists)"
-        response.statusCode() == 404
-        problem(response).type == "/problems/file-not-found"
+        response.status == 404
+        response.problemType() == "/problems/file-not-found"
 
         and: "F still exists and downloads in full"
-        download(file.downloadLink).body() == "alice's bytes".bytes
-        get("/files/${file.id}", alice).statusCode() == 200
+        api.download(file.downloadLink).body == "alice's bytes".bytes
+        api.get(alice, file.id).status == 200
     }
 
     def "DOM-43 [BRIEF] the public list shows every user's PUBLIC files only"() {
@@ -113,11 +113,11 @@ class StorageApplicationSpec extends Specification {
         def c = upload(bob, "C.txt", "c".bytes, "PUBLIC", [tag])
 
         when: "anyone lists public files (no user id)"
-        def response = send(HttpRequest.newBuilder(url("/files/public?tag=$tag")).GET())
-        def page = new JsonSlurper().parse(response.body()) as Map
+        def response = api.publicFiles(tag: tag)
+        def page = response.json()
 
         then: "the list contains A and C and not B"
-        response.statusCode() == 200
+        response.status == 200
         page.items*.id as Set == [a.id, c.id] as Set
         page.totalItems == 2
     }
@@ -128,17 +128,17 @@ class StorageApplicationSpec extends Specification {
         def file = upload(alice, "big.bin", content, "PRIVATE")
 
         when: "it is downloaded by its link"
-        def response = download(file.downloadLink)
+        def response = api.download(file.downloadLink)
 
         then: "the client receives bytes identical to the stored ones"
-        response.statusCode() == 200
-        sha256(response.body()) == sha256(content)
+        response.status == 200
+        sha256(response.body) == sha256(content)
         file.sha256 == sha256(content)
         file.size == content.length
 
         and: "with the download headers"
-        response.headers().firstValue("Content-Disposition").get() == "attachment; filename=\"big.bin\"; filename*=UTF-8''big.bin"
-        response.headers().firstValue("X-Content-Type-Options").get() == "nosniff"
+        response.header("Content-Disposition") == "attachment; filename=\"big.bin\"; filename*=UTF-8''big.bin"
+        response.header("X-Content-Type-Options") == "nosniff"
     }
 
     def "DOM-37 a type is detected when the client doesn't send one"() {
@@ -148,7 +148,7 @@ class StorageApplicationSpec extends Specification {
 
         then: "the file's content type is image/png, and the download sends it"
         file.contentType == "image/png"
-        download(file.downloadLink).headers().firstValue("Content-Type").get() == "image/png"
+        api.download(file.downloadLink).header("Content-Type") == "image/png"
     }
 
     def "STO-16 a record whose bytes are missing is an internal error"() {
@@ -158,11 +158,11 @@ class StorageApplicationSpec extends Specification {
         s3.deleteObject(DeleteObjectRequest.builder().bucket(s3Properties.bucket()).key(storageKey).build())
 
         when: "the file is downloaded by its link"
-        def response = download(file.downloadLink)
+        def response = api.download(file.downloadLink)
 
         then: "the response is 500 with type about:blank, not 404"
-        response.statusCode() == 500
-        problem(response).type == "about:blank"
+        response.status == 500
+        response.problemType() == "about:blank"
     }
 
     def "rename, get and delete through HTTP"() {
@@ -170,22 +170,20 @@ class StorageApplicationSpec extends Specification {
         def file = upload(alice, "draft.txt", "words".bytes, "PRIVATE")
 
         when: "alice renames it"
-        def renamed = send(HttpRequest.newBuilder(url("/files/${file.id}"))
-                .header("X-User-Id", alice).header("Content-Type", "application/json")
-                .method("PATCH", HttpRequest.BodyPublishers.ofString('{"filename": "final.txt"}')))
+        def renamed = api.rename(alice, file.id, "final.txt")
 
         then:
-        renamed.statusCode() == 200
-        json(renamed).filename == "final.txt"
-        json(get("/files/${file.id}", alice)).filename == "final.txt"
+        renamed.status == 200
+        renamed.json().filename == "final.txt"
+        api.get(alice, file.id).json().filename == "final.txt"
 
         when: "she deletes it"
-        def deleted = send(HttpRequest.newBuilder(url("/files/${file.id}")).header("X-User-Id", alice).DELETE())
+        def deleted = api.delete(alice, file.id)
 
         then: "it is gone, and so is its link"
-        deleted.statusCode() == 204
-        get("/files/${file.id}", alice).statusCode() == 404
-        download(file.downloadLink).statusCode() == 404
+        deleted.status == 204
+        api.get(alice, file.id).status == 404
+        api.download(file.downloadLink).status == 404
     }
 
     // --- helpers -------------------------------------------------------------------------------------
@@ -217,59 +215,16 @@ class StorageApplicationSpec extends Specification {
         }
     }
 
+    /** Uploads through the API and returns the created file; fails the spec if it isn't a 201. */
     Map upload(String user, String filename, byte[] content, String visibility, List<String> tags = [],
                String contentType = "application/octet-stream") {
-        def query = "filename=${URLEncoder.encode(filename, "UTF-8")}&visibility=$visibility" + tags.collect { "&tags=$it" }.join()
-        def request = HttpRequest.newBuilder(url("/files?$query")).header("X-User-Id", user)
-        if (contentType) {
-            request.header("Content-Type", contentType)
-        }
-        def response = send(request.POST(HttpRequest.BodyPublishers.ofByteArray(content)))
-        assert response.statusCode() == 201: new String(response.body())
-        json(response)
-    }
-
-    Map list(String user) {
-        json(get("/files", user))
-    }
-
-    HttpResponse<byte[]> get(String path, String user) {
-        send(HttpRequest.newBuilder(url(path)).header("X-User-Id", user).GET())
-    }
-
-    HttpResponse<byte[]> download(String link) {
-        send(HttpRequest.newBuilder(url(link)).GET())
-    }
-
-    HttpResponse<byte[]> send(HttpRequest.Builder request) {
-        http.send(request.build(), HttpResponse.BodyHandlers.ofByteArray())
-    }
-
-    URI url(String path) {
-        URI.create("http://localhost:$port$path")
+        def response = api.upload(user, filename, content, [visibility: visibility, tags: tags, contentType: contentType])
+        assert response.status == 201: response
+        response.json()
     }
 
     long objectCount() {
         s3.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(s3Properties.bucket()).build())
                 .contents().stream().count()
-    }
-
-    static Map json(HttpResponse<byte[]> response) {
-        new JsonSlurper().parse(response.body()) as Map
-    }
-
-    /** RFC 9457 §3.1.1: an absent "type" means about:blank. */
-    static Map problem(HttpResponse<byte[]> response) {
-        [type: "about:blank"] + json(response)
-    }
-
-    static byte[] random(int size, long seed) {
-        def bytes = new byte[size]
-        new Random(seed).nextBytes(bytes)
-        bytes
-    }
-
-    static String sha256(byte[] bytes) {
-        MessageDigest.getInstance("SHA-256").digest(bytes).encodeHex().toString()
     }
 }

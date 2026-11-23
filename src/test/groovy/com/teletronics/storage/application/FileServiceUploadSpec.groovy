@@ -11,9 +11,9 @@ import com.teletronics.storage.domain.file.StorageKey
 import com.teletronics.storage.testing.FixedContentTypeDetector
 import com.teletronics.storage.testing.InMemoryBlobStore
 import com.teletronics.storage.testing.InMemoryFileRepository
+import static com.teletronics.storage.testing.TestBytes.sha256
 import spock.lang.Specification
 
-import java.security.MessageDigest
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -386,9 +386,5 @@ class FileServiceUploadSpec extends Specification {
         } catch (DuplicateFileException ignored) {
             return "rejected"
         }
-    }
-
-    static String sha256(byte[] bytes) {
-        MessageDigest.getInstance("SHA-256").digest(bytes).encodeHex().toString()
     }
 }

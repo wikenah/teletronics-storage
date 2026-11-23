@@ -3,11 +3,11 @@ package com.teletronics.storage.system
 import com.teletronics.storage.testing.ApiResponse
 import com.teletronics.storage.testing.RawHttpClient
 import com.teletronics.storage.testing.StorageApiClient
+import static com.teletronics.storage.testing.TestBytes.sha256
+import static com.teletronics.storage.testing.TestBytes.unique
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.security.MessageDigest
-import java.util.concurrent.ThreadLocalRandom
 
 /**
  * Every scenario in the brief, through the REST API only, against the shipped Docker image with MongoDB and
@@ -36,7 +36,7 @@ class BriefScenariosSpec extends Specification {
 
     def "Upload a file with a filename, a #visibility visibility and 5 tags"() {
         given: "a file of a few KB"
-        byte[] content = random(3 * 1024)
+        byte[] content = unique(3 * 1024)
 
         when: "alice uploads it with a filename, a visibility and 5 tags"
         def response = api.upload(alice, "Quarterly Report.pdf", content,
@@ -63,7 +63,7 @@ class BriefScenariosSpec extends Specification {
 
     def "An upload is refused with #problem"() {
         when:
-        def response = api.upload(alice, "a.txt", random(100), options)
+        def response = api.upload(alice, "a.txt", unique(100), options)
 
         then: "the response is 400 invalid-request, naming the field"
         response.status == 400
@@ -82,7 +82,7 @@ class BriefScenariosSpec extends Specification {
 
     def "Files of any size upload and download byte for byte (#description)"() {
         given:
-        byte[] content = random(size)
+        byte[] content = unique(size)
 
         when: "alice uploads the file"
         def file = uploaded(alice, "file.bin", content)
@@ -105,7 +105,7 @@ class BriefScenariosSpec extends Specification {
 
     def "Change the filename without uploading the file again"() {
         given: "alice has uploaded \"draft.txt\""
-        byte[] content = random(4096)
+        byte[] content = unique(4096)
         def original = uploaded(alice, "draft.txt", content, [tags: ["work"]])
 
         when: "she sends only the new name"
@@ -152,9 +152,9 @@ class BriefScenariosSpec extends Specification {
     def "[Checklist 1.5] List all public files"() {
         given: "alice has PUBLIC file A and PRIVATE file B, bob has PUBLIC file C, all with this feature's tag"
         def tag = runTag()
-        def a = uploaded(alice, "A.txt", random(100), [visibility: "PUBLIC", tags: [tag]])
-        def b = uploaded(alice, "B.txt", random(100), [visibility: "PRIVATE", tags: [tag]])
-        def c = uploaded(bob, "C.txt", random(100), [visibility: "PUBLIC", tags: [tag]])
+        def a = uploaded(alice, "A.txt", unique(100), [visibility: "PUBLIC", tags: [tag]])
+        def b = uploaded(alice, "B.txt", unique(100), [visibility: "PRIVATE", tags: [tag]])
+        def c = uploaded(bob, "C.txt", unique(100), [visibility: "PUBLIC", tags: [tag]])
 
         when: "anyone lists public files, without a user id"
         def page = api.publicFiles([tag: tag]).json()
@@ -171,9 +171,9 @@ class BriefScenariosSpec extends Specification {
 
     def "List all files that belong to the user"() {
         given: "alice has PUBLIC file A and PRIVATE file B, bob has PUBLIC file C"
-        def a = uploaded(alice, "A.txt", random(100), [visibility: "PUBLIC"])
-        def b = uploaded(alice, "B.txt", random(100), [visibility: "PRIVATE"])
-        def c = uploaded(bob, "C.txt", random(100), [visibility: "PUBLIC"])
+        def a = uploaded(alice, "A.txt", unique(100), [visibility: "PUBLIC"])
+        def b = uploaded(alice, "B.txt", unique(100), [visibility: "PRIVATE"])
+        def c = uploaded(bob, "C.txt", unique(100), [visibility: "PUBLIC"])
 
         expect: "alice's list has A and B, PUBLIC and PRIVATE, and not C"
         api.myFiles(alice).json().items*.id as Set == [a.id, b.id] as Set
@@ -191,8 +191,8 @@ class BriefScenariosSpec extends Specification {
     def "Filter #list by tag: case doesn't matter, and there is no tag guessing"() {
         given: "files tagged with a tag of this feature in one case, and another file with another tag"
         def tag = runTag()
-        def tagged = uploaded(alice, "tagged.txt", random(100), [visibility: "PUBLIC", tags: [tag.toUpperCase()]])
-        uploaded(alice, "other.txt", random(100), [visibility: "PUBLIC", tags: [runTag()]])
+        def tagged = uploaded(alice, "tagged.txt", unique(100), [visibility: "PUBLIC", tags: [tag.toUpperCase()]])
+        uploaded(alice, "other.txt", unique(100), [visibility: "PUBLIC", tags: [runTag()]])
 
         expect: "the tag in any case finds the tagged file only"
         ids(list, [tag: tag]) == [tagged.id]
@@ -213,7 +213,7 @@ class BriefScenariosSpec extends Specification {
         assert api.publicFiles([tag: tag]).json().totalItems == 0
 
         when: "alice uploads a file with it"
-        def file = uploaded(alice, "new-tag.txt", random(100), [visibility: "PUBLIC", tags: [tag]])
+        def file = uploaded(alice, "new-tag.txt", unique(100), [visibility: "PUBLIC", tags: [tag]])
 
         then: "the file carries the tag, and the tag can be filtered by"
         file.tags == [tag]
@@ -225,7 +225,7 @@ class BriefScenariosSpec extends Specification {
     def "Sort my files by #field #direction"() {
         given: "alice uploads files, in this order, that differ in #field"
         files.each { Map f ->
-            uploaded(alice, f.name as String, random((f.size ?: 256) as int),
+            uploaded(alice, f.name as String, unique((f.size ?: 256) as int),
                     [tags: f.tags ?: [], contentType: f.type ?: "application/octet-stream"])
         }
 
@@ -252,9 +252,9 @@ class BriefScenariosSpec extends Specification {
     def "Sort public files too, and the default order is newest first"() {
         given: "PUBLIC files of two users, uploaded in this order, with this feature's tag"
         def tag = runTag()
-        uploaded(alice, "b-medium", random(500), [visibility: "PUBLIC", tags: [tag]])
-        uploaded(bob, "a-big", random(900), [visibility: "PUBLIC", tags: [tag]])
-        uploaded(alice, "c-small", random(10), [visibility: "PUBLIC", tags: [tag]])
+        uploaded(alice, "b-medium", unique(500), [visibility: "PUBLIC", tags: [tag]])
+        uploaded(bob, "a-big", unique(900), [visibility: "PUBLIC", tags: [tag]])
+        uploaded(alice, "c-small", unique(10), [visibility: "PUBLIC", tags: [tag]])
 
         expect:
         names(api.publicFiles([tag: tag, sort: "size,desc"])) == ["a-big", "b-medium", "c-small"]
@@ -289,7 +289,7 @@ class BriefScenariosSpec extends Specification {
 
         and: "the public list is paged the same way"
         def tag = runTag()
-        3.times { uploaded(bob, "public-$it", random(100), [visibility: "PUBLIC", tags: [tag]]) }
+        3.times { uploaded(bob, "public-$it", unique(100), [visibility: "PUBLIC", tags: [tag]]) }
         api.publicFiles([tag: tag, size: 2]).json().with { items.size() == 2 && totalItems == 3 && totalPages == 2 }
         api.publicFiles([tag: tag, size: 2, page: 1]).json().items.size() == 1
     }
@@ -299,7 +299,7 @@ class BriefScenariosSpec extends Specification {
 
     def "Delete your own file"() {
         given: "alice has a file"
-        byte[] content = random(1000)
+        byte[] content = unique(1000)
         def file = uploaded(alice, "old.txt", content)
 
         when: "she deletes it"
@@ -317,7 +317,7 @@ class BriefScenariosSpec extends Specification {
 
     def "[Checklist 1.4] Deleting a #visibility file that belongs to another user is refused"() {
         given: "alice has a #visibility file"
-        byte[] content = random(1000)
+        byte[] content = unique(1000)
         def file = uploaded(alice, "alice.txt", content, [visibility: visibility])
 
         when: "bob tries to delete it"
@@ -351,7 +351,7 @@ class BriefScenariosSpec extends Specification {
         "PNG bytes without a Content-Type"           | "photo"    | PNG        | null                       || "image/png"
         "PDF bytes with the generic octet-stream"    | "doc.bin"  | PDF        | "application/octet-stream" || "application/pdf"
         "plain text without a Content-Type"          | "notes"    | TEXT       | null                       || "text/plain"
-        "unrecognisable bytes without a Content-Type" | "blob"    | random(512) | null                      || "application/octet-stream"
+        "unrecognisable bytes without a Content-Type" | "blob"    | unique(512) | null                      || "application/octet-stream"
         "a file whose type the user provides"        | "data.csv" | "a,b\n1,2\n".bytes | "text/csv"         || "text/csv"
     }
 
@@ -373,7 +373,7 @@ class BriefScenariosSpec extends Specification {
 
     def "No link guessing: #guess finds nothing"() {
         given: "alice has a file with a download link"
-        def file = uploaded(alice, "secret.txt", random(100), [visibility: "PRIVATE"])
+        def file = uploaded(alice, "secret.txt", unique(100), [visibility: "PRIVATE"])
 
         when: "someone requests a download with #guess"
         def response = api.download("/download/" + make(file))
@@ -396,7 +396,7 @@ class BriefScenariosSpec extends Specification {
 
     def "[Checklist 6] A #visibility file can be downloaded by its link, by anyone holding it"() {
         given: "alice has a #visibility file"
-        byte[] content = random(10_000)
+        byte[] content = unique(10_000)
         def file = uploaded(alice, "shared report.pdf", content, [visibility: visibility, contentType: "application/pdf"])
 
         when: "someone downloads it by the link, with no user id"
@@ -422,7 +422,7 @@ class BriefScenariosSpec extends Specification {
         def existing = uploaded(alice, "Report.pdf")
 
         when: "she uploads different content named #name"
-        def response = api.upload(alice, name, random(200))
+        def response = api.upload(alice, name, unique(200))
 
         then: "it is refused as filename-exists, pointing at her existing file"
         response.status == 409
@@ -437,7 +437,7 @@ class BriefScenariosSpec extends Specification {
 
     def "The same file is refused when the content is the same, under any filename"() {
         given: "alice has a file with content C"
-        byte[] content = random(2000)
+        byte[] content = unique(2000)
         def existing = uploaded(alice, "original.bin", content)
 
         when: "she uploads content C as \"copy.bin\""
@@ -451,7 +451,7 @@ class BriefScenariosSpec extends Specification {
 
     def "No global uniqueness: another user can upload the same filename and the same content"() {
         given: "alice has \"report.pdf\" with content C"
-        byte[] content = random(2000)
+        byte[] content = unique(2000)
         def alices = uploaded(alice, "report.pdf", content)
 
         when: "bob uploads content C as \"report.pdf\""
@@ -468,8 +468,8 @@ class BriefScenariosSpec extends Specification {
 
     def "[Checklist 1.1] Parallel uploads of a file with the same filename: exactly one is stored"() {
         when: "two uploads named \"report.pdf\" with different content are in flight at the same time"
-        def responses = parallelUploads(alice, [[filename: "report.pdf", body: random(1024 * 1024)],
-                                                [filename: "report.pdf", body: random(1024 * 1024)]])
+        def responses = parallelUploads(alice, [[filename: "report.pdf", body: unique(1024 * 1024)],
+                                                [filename: "report.pdf", body: unique(1024 * 1024)]])
 
         then: "one is created and the other refused as filename-exists"
         responses*.status.sort() == [201, 409]
@@ -481,7 +481,7 @@ class BriefScenariosSpec extends Specification {
 
     def "[Checklist 1.2] Parallel uploads of a file with the same contents: exactly one is stored"() {
         given:
-        byte[] content = random(1024 * 1024)
+        byte[] content = unique(1024 * 1024)
 
         when: "two uploads of the same content under different filenames are in flight at the same time"
         def responses = parallelUploads(alice, [[filename: "a.bin", body: content], [filename: "b.bin", body: content]])
@@ -499,14 +499,14 @@ class BriefScenariosSpec extends Specification {
 
     def "[Checklist 3] No sessions and no user management: the user id comes with every request"() {
         when: "a user works with the API"
-        def upload = api.upload(alice, "a.txt", random(100), [visibility: "PUBLIC"])
+        def upload = api.upload(alice, "a.txt", unique(100), [visibility: "PUBLIC"])
         def responses = [upload, api.myFiles(alice), api.publicFiles(), api.download(upload.json().downloadLink)]
 
         then: "no response creates a session or sets a cookie"
         responses.every { it.status in [200, 201] && it.header("Set-Cookie") == null }
 
         and: "requests without the user id are refused where an owner is needed"
-        api.upload(null, "b.txt", random(100)).with { status == 400 && json().field == "X-User-Id" }
+        api.upload(null, "b.txt", unique(100)).with { status == 400 && json().field == "X-User-Id" }
         api.delete(null, upload.json().id).status == 400
 
         and: "there are no user or session endpoints"
@@ -515,7 +515,7 @@ class BriefScenariosSpec extends Specification {
 
     // --- helpers -------------------------------------------------------------------------------------
 
-    Map uploaded(String user, String filename, byte[] content = random(256), Map options = [:]) {
+    Map uploaded(String user, String filename, byte[] content = unique(256), Map options = [:]) {
         def response = api.upload(user, filename, content, options)
         assert response.status == 201: "upload of $filename: $response"
         response.json()
@@ -576,15 +576,5 @@ class BriefScenariosSpec extends Specification {
 
     static String flipFirst(String token) {
         (token[0] == "A" ? "B" : "A") + token.substring(1)
-    }
-
-    static byte[] random(int size) {
-        def bytes = new byte[size]
-        ThreadLocalRandom.current().nextBytes(bytes)
-        bytes
-    }
-
-    static String sha256(byte[] bytes) {
-        MessageDigest.getInstance("SHA-256").digest(bytes).encodeHex().toString()
     }
 }

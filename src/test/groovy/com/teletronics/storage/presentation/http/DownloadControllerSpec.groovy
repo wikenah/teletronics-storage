@@ -47,7 +47,7 @@ class DownloadControllerSpec extends Specification {
 
         and: "Content-Disposition is attachment with an ASCII fallback and the exact name in filename*"
         response.getHeader("Content-Disposition") ==
-                "attachment; filename=\"r_sum_ final.pdf\"; filename*=UTF-8''r%C3%A9sum%C3%A9%20final.pdf"
+                "attachment; filename=\"resume final.pdf\"; filename*=UTF-8''r%C3%A9sum%C3%A9%20final.pdf"
 
         and: "X-Content-Type-Options is nosniff"
         response.getHeader("X-Content-Type-Options") == "nosniff"

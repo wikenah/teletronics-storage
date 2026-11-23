@@ -347,14 +347,14 @@ When anyone sends GET /download/T
 Then the response is 200 with the file's bytes, streamed
 And Content-Type is application/pdf
 And Content-Length is N
-And Content-Disposition is attachment with filename="r_sum_ final.pdf" and filename*=UTF-8''r%C3%A9sum%C3%A9%20final.pdf
+And Content-Disposition is attachment with filename="resume final.pdf" and filename*=UTF-8''r%C3%A9sum%C3%A9%20final.pdf
 And X-Content-Type-Options is nosniff
 ```
 And:
 - An unknown token → 404 `/problems/file-not-found`.
 - No `X-User-Id` is needed.
 - A `Range` header is ignored and the full file returned with 200 (RFC 9110: "A server MAY ignore the Range header field"). Range support, i.e. resuming a download, is documented, not built.
-- RFC 6266: send both "the more expressive "filename*" parameter, and the "filename" parameter as fallback". The ASCII fallback replaces non-ASCII characters; the exact replacement rule is fixed when built.
+- RFC 6266: send both "the more expressive "filename*" parameter, and the "filename" parameter as fallback". Built with Spring's `ContentDisposition` (`attachment().filename(name, UTF_8)`), which writes both parameters: in the ASCII fallback an accented letter becomes its base letter (`é` → `e`, `ä` → `ae`) and any other non-ASCII character becomes `_`.
 
 Test level: controller and HTTP.
 

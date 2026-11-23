@@ -3,8 +3,8 @@ package com.teletronics.storage.presentation.http;
 import com.teletronics.storage.application.Download;
 import com.teletronics.storage.application.FileService;
 import com.teletronics.storage.domain.file.StoredFile;
-import com.teletronics.storage.presentation.http.response.ContentDispositionFormatter;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Download by link: anyone holding the token gets the bytes, PUBLIC or PRIVATE (domain decision 8).
@@ -36,7 +37,8 @@ public class DownloadController {
             response.setContentType(file.contentType().value());
             response.setContentLengthLong(file.size());
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                    ContentDispositionFormatter.attachment(file.filename().value()));
+                    ContentDisposition.attachment().filename(file.filename().value(), StandardCharsets.UTF_8)
+                            .build().toString());
             response.setHeader("X-Content-Type-Options", "nosniff");
             body.transferTo(response.getOutputStream());
         }

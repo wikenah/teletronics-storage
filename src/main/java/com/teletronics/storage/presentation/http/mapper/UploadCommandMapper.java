@@ -1,4 +1,4 @@
-package com.teletronics.storage.presentation.http.request;
+package com.teletronics.storage.presentation.http.mapper;
 
 import com.teletronics.storage.application.upload.UploadCommand;
 import jakarta.servlet.http.HttpServletRequest;

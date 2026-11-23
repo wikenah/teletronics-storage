@@ -1,4 +1,4 @@
-package com.teletronics.storage.presentation.http.request;
+package com.teletronics.storage.presentation.http.mapper;
 
 import com.teletronics.storage.presentation.http.exception.InvalidRequestException;
 import lombok.experimental.UtilityClass;

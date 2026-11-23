@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 STORAGE: a REST file storage and sharing API, built as an interview test project. Java 21, Spring Boot 4.1.3 (Spring 7, Tomcat 11, Jackson 3), MongoDB 8.0 for metadata, SeaweedFS (S3-compatible) for the bytes, Apache Tika for type detection, Spock 2.5 (Groovy 5) for tests. The README describes the API, the error table and how to run it.
 
-Lombok is used in the main code only for boilerplate: `@RequiredArgsConstructor`, `@Slf4j` and `@UtilityClass` (the static request helpers). The domain layer doesn't use it.
+Lombok is used in the main code only for boilerplate: `@RequiredArgsConstructor`, `@Slf4j` and `@UtilityClass` (the static request validators and mappers). The domain layer doesn't use it.
 
 Boot 4 moved many classes: check an existing import before assuming a Boot 3 package name (e.g. `org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest`, `org.springframework.boot.mongodb.autoconfigure.*`, `org.testcontainers.mongodb.MongoDBContainer`).
 
@@ -41,7 +41,7 @@ DDD layers under `com.teletronics.storage`. The dependency rule is a convention,
 
 - `domain/file`: the `StoredFile` aggregate and its `FileRepository` port at the top; `valueobject/` (self-validating: `Filename`, `Tags`, `OwnerId`, `FileId`, `DownloadToken`, …), `query/` (`FileQuery`, `SortField`, `PageResult`), `exception/`. Invalid input throws `InvalidFileException(field, message)`.
 - `application`: `FileService` (all use cases); `download/` (`Download`: a file's metadata plus its byte stream); `upload/` (the upload command, `AdmittedUpload` (which carries out an upload once it is admitted), the memory budget, the hashing stream); `port/` (the outbound interfaces `BlobStore`, `ContentTypeDetector`); `exception/`. `FileService` is a `@Service` and `UploadBudget` a `@Component` (its size comes from `uploads.buffer-budget-mib`); nothing else in this layer uses Spring.
-- `presentation/http`: `FilesController`, request parsers (`request/`), response DTOs (`response/`), `ProblemDetailsAdvice` mapping every exception to RFC 9457 Problem Details (`problem/`), the HTTP layer's own exceptions (`exception/`).
+- `presentation/http`: `FilesController`, request handling split by role (`validator/` rejects what only HTTP can judge, `mapper/` turns a request into a command, a query or an owner id), response DTOs (`response/`), `ProblemDetailsAdvice` mapping every exception to RFC 9457 Problem Details (`problem/`), the HTTP layer's own exceptions (`exception/`).
 - `infrastructure`: `persistence/mongo` (MongoOperations, not Spring Data repositories), `storage/s3` (AWS SDK v2 with the apache5 client), `detection` (Tika).
 
 ### The upload path (the part that spans every layer)

@@ -1,4 +1,4 @@
-package com.teletronics.storage.presentation.http.request;
+package com.teletronics.storage.presentation.http.validator;
 
 import com.teletronics.storage.presentation.http.exception.FormBodyNotSupportedException;
 import com.teletronics.storage.presentation.http.exception.InvalidRequestException;

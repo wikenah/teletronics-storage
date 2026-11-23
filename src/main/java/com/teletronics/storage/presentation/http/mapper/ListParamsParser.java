@@ -1,4 +1,4 @@
-package com.teletronics.storage.presentation.http.request;
+package com.teletronics.storage.presentation.http.mapper;
 
 import com.teletronics.storage.domain.file.query.FileQuery;
 import com.teletronics.storage.domain.file.query.SortField;

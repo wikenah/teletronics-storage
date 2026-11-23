@@ -1,4 +1,4 @@
-package com.teletronics.storage.presentation.http.request;
+package com.teletronics.storage.presentation.http.mapper;
 
 import com.teletronics.storage.domain.file.valueobject.OwnerId;
 import com.teletronics.storage.presentation.http.exception.InvalidRequestException;

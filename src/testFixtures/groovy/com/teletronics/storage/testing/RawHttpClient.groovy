@@ -16,7 +16,11 @@ class RawHttpClient implements Closeable {
     long bodyBytesSent = 0
 
     RawHttpClient(int port, int readTimeoutMillis = 15_000) {
-        socket = new Socket("localhost", port)
+        this("localhost", port, readTimeoutMillis)
+    }
+
+    RawHttpClient(String host, int port, int readTimeoutMillis = 15_000) {
+        socket = new Socket(host, port)
         socket.soTimeout = readTimeoutMillis
         input = new BufferedInputStream(socket.inputStream)
         output = new BufferedOutputStream(socket.outputStream, 64 * 1024)

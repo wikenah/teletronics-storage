@@ -123,7 +123,7 @@ Spock specifications. Each feature method is named after its acceptance criterio
 | `test` | Domain, file service with in-memory fakes, controllers (`@WebMvcTest`), S3 write loop | `./gradlew test` |
 | `httpTest` | The web layer on a real Tomcat with a 256 MB heap and a raw socket client | `./gradlew httpTest` |
 | `integrationTest` | Mongo 8.0 and SeaweedFS in Testcontainers; the whole app over HTTP | `./gradlew integrationTest` (needs Docker) |
-| `containerTest` | The built Docker image under the brief's limits | see below |
+| `containerTest` | The built Docker image: every scenario of the brief through the API (`BriefScenariosSpec`), and the 2 GB upload under the brief's limits (`LargeUploadSpec`) | see below |
 
 `./gradlew build` runs the first three. The container test needs the image:
 
@@ -135,11 +135,13 @@ The tests the brief asks for:
 
 | Brief | Spec |
 |---|---|
-| Parallel upload, same filename | `DOM-11 [BRIEF]` in `FileServiceMongoSpec` and, over HTTP, in `StorageApplicationSpec` |
-| Parallel upload, same content | `DOM-12 [BRIEF]` in the same two specs |
-| Upload of a file of at least 2 GB | `API-18 [BRIEF]` in `HttpUploadSpec` (256 MB heap), `SYS-01 [BRIEF]` in `LargeUploadSpec` (the image, 1 GB container) |
-| Delete a file that doesn't belong to the user | `DOM-39 [BRIEF]` in `FileServiceFilesSpec`, `FileServiceMongoSpec`, `StorageApplicationSpec` |
-| List all public files | `DOM-43 [BRIEF]` in the same three specs |
+| 1.1 Parallel upload, same filename | `[Checklist 1.1]` in `BriefScenariosSpec`; `DOM-11 [BRIEF]` in `FileServiceMongoSpec` and `StorageApplicationSpec` |
+| 1.2 Parallel upload, same content | `[Checklist 1.2]` in `BriefScenariosSpec`; `DOM-12 [BRIEF]` in the same two specs |
+| 1.3 Upload of a file of at least 2 GB | `SYS-01 [BRIEF]` in `LargeUploadSpec` (the image, 1 GB container); `API-18 [BRIEF]` in `HttpUploadSpec` (256 MB heap) |
+| 1.4 Delete a file that doesn't belong to the user | `[Checklist 1.4]` in `BriefScenariosSpec`; `DOM-39 [BRIEF]` in `FileServiceFilesSpec`, `FileServiceMongoSpec`, `StorageApplicationSpec` |
+| 1.5 List all public files | `[Checklist 1.5]` in `BriefScenariosSpec`; `DOM-43 [BRIEF]` in the same three specs |
+
+`BriefScenariosSpec` goes through the whole brief in its own order and wording: each functional requirement, then checklist items 1 to 7, using only API calls against the shipped image.
 
 The parallel tests are deterministic. Both uploads are held past the name check before either inserts: a barrier in the service-level spec, `Expect: 100-continue` in the HTTP one. The unique index decides the race every run.
 

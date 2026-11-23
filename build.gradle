@@ -107,6 +107,8 @@ testing {
         // Black-box tests against the built Docker image (SYS-xx). Not part of `check`.
         containerTest(JvmTestSuite) {
             dependencies {
+                // Only the HTTP test clients are used; the specs never touch the app's classes.
+                implementation testFixtures(project())
                 implementation 'org.testcontainers:testcontainers'
                 implementation 'org.testcontainers:testcontainers-mongodb'
                 implementation 'org.apache.groovy:groovy-json'

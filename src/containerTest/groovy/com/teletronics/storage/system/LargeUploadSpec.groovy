@@ -17,15 +17,7 @@ class LargeUploadSpec extends Specification {
     static final long TWO_GIB = 2048L * MIB
 
     @Shared
-    ApplicationStack stack = new ApplicationStack()
-
-    def setupSpec() {
-        stack.start()
-    }
-
-    def cleanupSpec() {
-        stack.stop()
-    }
+    ApplicationStack stack = ApplicationStack.shared()
 
     def "SYS-01 [BRIEF] 2 GiB upload against the running container"() {
         given: "the built application image runs with a 1 GiB memory limit (swap equal to memory)"

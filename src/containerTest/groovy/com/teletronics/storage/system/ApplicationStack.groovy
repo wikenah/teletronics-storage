@@ -42,6 +42,20 @@ class ApplicationStack {
             .withCreateContainerCmdModifier { cmd -> cmd.hostConfig.withMemory(ONE_GIB).withMemorySwap(ONE_GIB) }
             .waitingFor(Wait.forHttp("/files/public").forPort(8080).forStatusCode(200).withStartupTimeout(Duration.ofSeconds(120)))
 
+    private static ApplicationStack shared
+
+    /**
+     * One stack for every container spec in the test run, started on first use.
+     * Testcontainers removes the containers when the test JVM exits.
+     */
+    static synchronized ApplicationStack shared() {
+        if (shared == null) {
+            shared = new ApplicationStack()
+            shared.start()
+        }
+        shared
+    }
+
     void start() {
         mongo.start()
         seaweedFs.start()
@@ -53,7 +67,15 @@ class ApplicationStack {
         network.close()
     }
 
+    String host() {
+        app.host
+    }
+
+    int port() {
+        app.getMappedPort(8080)
+    }
+
     String baseUrl() {
-        "http://${app.host}:${app.getMappedPort(8080)}"
+        "http://${host()}:${port()}"
     }
 }

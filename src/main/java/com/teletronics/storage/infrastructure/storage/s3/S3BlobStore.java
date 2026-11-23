@@ -159,6 +159,7 @@ public class S3BlobStore implements BlobStore {
         }
     }
 
+    /** Runs one S3 request and translates its failure, so no SDK exception type leaks out of this class. */
     private static <T> T call(Supplier<T> request) {
         try {
             return request.get();
@@ -167,14 +168,25 @@ public class S3BlobStore implements BlobStore {
         }
     }
 
-    /** Unreachable store or a 5xx from it: "storage unavailable" (503). Anything else stays as it is (500). */
+    /**
+     * The store's fault (unreachable, or it answered 5xx) becomes "storage unavailable" (503: retry later).
+     * Anything else is ours, a bad request or a missing key, and stays as it is (500 unless the caller handles it).
+     */
     private static RuntimeException translate(RuntimeException e) {
-        if (e instanceof SdkClientException) {
+        if (neverReachedTheStore(e)) {
             return new StorageUnavailableException("object store unreachable", e);
         }
-        if (e instanceof S3Exception s3 && s3.statusCode() >= 500) {
-            return new StorageUnavailableException("object store failed with " + s3.statusCode(), e);
+        if (e instanceof S3Exception failure && isServerError(failure)) {
+            return new StorageUnavailableException("object store failed with " + failure.statusCode(), e);
         }
         return e;
+    }
+
+    private static boolean neverReachedTheStore(RuntimeException e) {
+        return e instanceof SdkClientException;
+    }
+
+    private static boolean isServerError(S3Exception failure) {
+        return failure.statusCode() >= 500;
     }
 }

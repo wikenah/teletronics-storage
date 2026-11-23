@@ -26,6 +26,7 @@ import com.teletronics.storage.domain.file.valueobject.OwnerId;
 import com.teletronics.storage.domain.file.valueobject.StorageKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.time.Clock;
@@ -38,6 +39,7 @@ import java.util.OptionalLong;
  * The file use cases. Bytes first, record after: the unique indexes decide duplicates at insert,
  * and bytes without a record are garbage (Domain decisions 1 and 5).
  */
+@Service
 public class FileService {
 
     private static final Logger log = LoggerFactory.getLogger(FileService.class);

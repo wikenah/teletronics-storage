@@ -1,5 +1,8 @@
 package com.teletronics.storage.application.upload;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.util.Optional;
 import java.util.concurrent.Semaphore;
 
@@ -7,6 +10,7 @@ import java.util.concurrent.Semaphore;
  * A memory budget for upload part buffers, counted in MiB (HTTP decision 9, Storage decision 2).
  * Never waits: a reservation either succeeds at once or the upload is refused.
  */
+@Component
 public class UploadBudget {
 
     static final long MIB = 1024L * 1024L;
@@ -14,7 +18,7 @@ public class UploadBudget {
     private final int totalMib;
     private final Semaphore permits;
 
-    public UploadBudget(int totalMib) {
+    public UploadBudget(@Value("${uploads.buffer-budget-mib}") int totalMib) {
         if (totalMib < 1) {
             throw new IllegalArgumentException("budget must be at least 1 MiB");
         }

@@ -197,11 +197,11 @@ class FilesControllerSpec extends Specification {
 
         then: "the file service receives the values exactly as sent"
         1 * files.startUpload(_) >> { UploadCommand c -> command = c; pending }
-        command.owner() == "alice"
-        command.filename() == "report.pdf"
-        command.visibility() == "PRIVATE"
-        command.tags() == ["work", "2026"]
-        command.declaredContentType() == Optional.of("application/pdf")
+        command.owner().value() == "alice"
+        command.filename().value() == "report.pdf"
+        command.visibility().name() == "PRIVATE"
+        command.tags().values() == ["work", "2026"]
+        command.declaredContentType().map { it.value() } == Optional.of("application/pdf")
         command.declaredLength() == OptionalLong.of(1024)
 
         and: "the body stream it reads yields exactly the 1024 bytes sent and then ends normally"

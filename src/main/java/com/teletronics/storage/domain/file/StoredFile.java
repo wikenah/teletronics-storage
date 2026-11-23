@@ -36,6 +36,13 @@ public record StoredFile(
         }
     }
 
+    /** A newly stored file: the domain gives it its identity and its download token. */
+    public static StoredFile create(OwnerId owner, Filename filename, Visibility visibility, Tags tags, long size,
+                                    Sha256 sha256, ContentType contentType, Instant uploadedAt, StorageKey storageKey) {
+        return new StoredFile(FileId.newId(), owner, filename, visibility, tags, size, sha256, contentType,
+                uploadedAt, DownloadToken.generate(), storageKey);
+    }
+
     public boolean isOwnedBy(OwnerId candidate) {
         return owner.equals(candidate);
     }

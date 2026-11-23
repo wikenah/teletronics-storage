@@ -17,8 +17,6 @@ import com.teletronics.storage.domain.file.PageResult;
 import com.teletronics.storage.domain.file.RepositoryDuplicateException;
 import com.teletronics.storage.domain.file.StorageKey;
 import com.teletronics.storage.domain.file.StoredFile;
-import com.teletronics.storage.domain.file.Tags;
-import com.teletronics.storage.domain.file.Visibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,18 +51,11 @@ public class FileService {
     }
 
     /**
-     * Every check that needs no body: validation, the memory budget, the filename pre-check.
+     * The checks that need no body: the memory budget and the filename pre-check. The command's values
+     * are already valid.
      * The caller reads the body only through the returned {@link PendingUpload} and must close it.
      */
     public PendingUpload startUpload(UploadCommand command) {
-        OwnerId owner = OwnerId.of(command.owner());
-        Filename filename = Filename.of(command.filename());
-        Visibility visibility = Visibility.parse(command.visibility());
-        Tags tags = Tags.of(command.tags());
-        Optional<ContentType> declaredType = command.declaredContentType()
-                .filter(value -> !value.isBlank())
-                .map(ContentType::new);
-
         long partSize = blobs.partSizeFor(command.declaredLength());
         if (!budget.canEverFit(partSize)) {
             throw new FileTooLargeException("the file is too large to store with bounded memory");
@@ -72,15 +63,14 @@ public class FileService {
         UploadBudget.Reservation reservation = budget.tryReserve(partSize)
                 .orElseThrow(UploadCapacityReachedException::new);
         try {
-            files.findByOwnerAndFilenameKey(owner, filename.key()).ifPresent(existing -> {
-                throw new DuplicateFileException(DuplicateFileException.Kind.FILENAME, existing);
+            files.findByOwnerAndFilenameKey(command.owner(), command.filename().key()).ifPresent(existing -> {
+                throw DuplicateFileException.filename(existing);
             });
         } catch (RuntimeException e) {
             reservation.close();
             throw e;
         }
-        return new AdmittedUpload(owner, filename, visibility, tags, declaredType,
-                command.declaredLength(), reservation);
+        return new AdmittedUpload(command, reservation);
     }
 
     public StoredFile get(OwnerId owner, FileId id) {
@@ -101,7 +91,7 @@ public class FileService {
         } catch (RepositoryDuplicateException e) {
             throw files.findByOwnerAndFilenameKey(owner, filename.key())
                     .filter(existing -> !existing.id().equals(id))
-                    .map(existing -> new DuplicateFileException(DuplicateFileException.Kind.FILENAME, existing))
+                    .map(DuplicateFileException::filename)
                     .orElseThrow(() -> e);
         }
         return renamed;
@@ -147,44 +137,30 @@ public class FileService {
 
     private final class AdmittedUpload implements PendingUpload {
 
-        private final OwnerId owner;
-        private final Filename filename;
-        private final Visibility visibility;
-        private final Tags tags;
-        private final Optional<ContentType> declaredType;
-        private final OptionalLong declaredLength;
+        private final UploadCommand command;
         private final UploadBudget.Reservation reservation;
 
-        private AdmittedUpload(OwnerId owner, Filename filename, Visibility visibility, Tags tags,
-                              Optional<ContentType> declaredType, OptionalLong declaredLength,
-                              UploadBudget.Reservation reservation) {
-            this.owner = owner;
-            this.filename = filename;
-            this.visibility = visibility;
-            this.tags = tags;
-            this.declaredType = declaredType;
-            this.declaredLength = declaredLength;
+        private AdmittedUpload(UploadCommand command, UploadBudget.Reservation reservation) {
+            this.command = command;
             this.reservation = reservation;
         }
 
         @Override
         public StoredFile complete(InputStream body) {
             StorageKey key = StorageKey.random();
+            OptionalLong declaredLength = command.declaredLength();
             DigestingInputStream digesting = new DigestingInputStream(body, detector.prefixLength());
             blobs.store(key, digesting, declaredLength);
-
             long size = digesting.count();
             if (declaredLength.isPresent() && declaredLength.getAsLong() != size) {
                 deleteBytesOrLogOrphan(key, "body shorter than Content-Length");
                 throw new IncompleteUploadException("received " + size + " of " + declaredLength.getAsLong() + " bytes");
             }
-
-            ContentType contentType = declaredType
+            ContentType contentType = command.declaredContentType()
                     .filter(type -> !type.isGeneric())
-                    .orElseGet(() -> detector.detect(digesting.prefix(), filename));
-
-            StoredFile file = new StoredFile(FileId.newId(), owner, filename, visibility, tags, size,
-                    digesting.sha256(), contentType, uploadedAt(), DownloadToken.generate(), key);
+                    .orElseGet(() -> detector.detect(digesting.prefix(), command.filename()));
+            StoredFile file = StoredFile.create(command.owner(), command.filename(), command.visibility(),
+                    command.tags(), size, digesting.sha256(), contentType, uploadedAt(), key);
             try {
                 files.insert(file);
                 return file;
@@ -199,12 +175,12 @@ public class FileService {
 
         /** Name wins over content, the same order as the pre-check (Domain decision 5). */
         private RuntimeException duplicateOf(StoredFile file, RepositoryDuplicateException cause) {
-            Optional<StoredFile> byName = files.findByOwnerAndFilenameKey(owner, file.filename().key());
+            Optional<StoredFile> byName = files.findByOwnerAndFilenameKey(file.owner(), file.filename().key());
             if (byName.isPresent()) {
-                return new DuplicateFileException(DuplicateFileException.Kind.FILENAME, byName.get());
+                return DuplicateFileException.filename(byName.get());
             }
-            return files.findByOwnerAndSha256(owner, file.sha256())
-                    .<RuntimeException>map(existing -> new DuplicateFileException(DuplicateFileException.Kind.CONTENT, existing))
+            return files.findByOwnerAndSha256(file.owner(), file.sha256())
+                    .<RuntimeException>map(DuplicateFileException::content)
                     .orElse(cause);
         }
 

@@ -340,9 +340,9 @@ class FileServiceUploadSpec extends Specification {
         budget.availableMib() == budget.totalMib()
     }
 
-    def "invalid values are rejected before anything is reserved: #field"() {
+    def "an upload command with an invalid value can't be built, so nothing is reserved: #field"() {
         when:
-        service.startUpload(new UploadCommand(owner, filename, visibility, tags, Optional.empty(), OptionalLong.empty()))
+        service.startUpload(UploadCommand.of(owner, filename, visibility, tags, Optional.empty(), OptionalLong.empty()))
 
         then:
         def e = thrown(InvalidFileException)
@@ -361,7 +361,7 @@ class FileServiceUploadSpec extends Specification {
 
     def upload(String owner, String name, byte[] content, String type = null, String visibility = "PRIVATE",
                List<String> tags = []) {
-        def pending = service.startUpload(new UploadCommand(owner, name, visibility, tags,
+        def pending = service.startUpload(UploadCommand.of(owner, name, visibility, tags,
                 Optional.ofNullable(type), OptionalLong.of(content.length)))
         try {
             return pending.complete(new ByteArrayInputStream(content))
@@ -372,7 +372,7 @@ class FileServiceUploadSpec extends Specification {
 
     def command(String owner, String name, Optional<String> type = Optional.empty(),
                 OptionalLong length = OptionalLong.empty()) {
-        new UploadCommand(owner, name, "PRIVATE", [], type, length)
+        UploadCommand.of(owner, name, "PRIVATE", [], type, length)
     }
 
     static InputStream stream(String text) {

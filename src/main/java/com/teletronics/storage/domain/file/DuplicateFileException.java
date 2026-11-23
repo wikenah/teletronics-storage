@@ -11,6 +11,14 @@ public class DuplicateFileException extends RuntimeException {
     private final Kind kind;
     private final StoredFile existing;
 
+    public static DuplicateFileException filename(StoredFile existing) {
+        return new DuplicateFileException(Kind.FILENAME, existing);
+    }
+
+    public static DuplicateFileException content(StoredFile existing) {
+        return new DuplicateFileException(Kind.CONTENT, existing);
+    }
+
     public DuplicateFileException(Kind kind, StoredFile existing) {
         super(kind == Kind.FILENAME ? "filename already exists" : "content already exists");
         this.kind = kind;

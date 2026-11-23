@@ -331,7 +331,7 @@ When one of its tags is <tag>
 Then it is rejected as an invalid request, with the broken rule named
 And nothing is stored
 ```
-`where:` tag = "" / "   " / 51 characters / a tag containing a line break. Commas and more than 5 raw values are already rejected by the HTTP layer (API-04). Test level: service.
+`where:` tag = "" / "   " / 51 characters / a tag containing a line break. Commas and more than 5 tags are rejected by the same types (`Tag`, `Tags`) when the upload command is built, before the file service is called (API-04). Test level: service.
 
 ### DOM-29 A new tag needs no setup
 ```gherkin

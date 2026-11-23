@@ -60,7 +60,7 @@ class TikaDetectionSpec extends Specification {
     }
 
     def upload(String name, byte[] content, String type) {
-        def pending = service.startUpload(new UploadCommand("alice", name, "PRIVATE", [],
+        def pending = service.startUpload(UploadCommand.of("alice", name, "PRIVATE", [],
                 Optional.ofNullable(type), OptionalLong.of(content.length)))
         try {
             pending.complete(new ByteArrayInputStream(content))

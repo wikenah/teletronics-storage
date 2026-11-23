@@ -330,7 +330,7 @@ class FileServiceFilesSpec extends Specification {
     def upload(String owner, String name, String content, String visibility = "PRIVATE",
                List<String> tags = [], String type = null) {
         def bytes = content.bytes
-        def pending = service.startUpload(new UploadCommand(owner, name, visibility, tags,
+        def pending = service.startUpload(UploadCommand.of(owner, name, visibility, tags,
                 Optional.ofNullable(type), OptionalLong.of(bytes.length)))
         try {
             return pending.complete(new ByteArrayInputStream(bytes))

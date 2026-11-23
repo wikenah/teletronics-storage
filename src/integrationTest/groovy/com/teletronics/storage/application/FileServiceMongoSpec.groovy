@@ -205,7 +205,7 @@ class FileServiceMongoSpec extends Specification {
     }
 
     static UploadCommand command(String owner, String name, String visibility, long length) {
-        new UploadCommand(owner, name, visibility, [], Optional.empty(), OptionalLong.of(length))
+        UploadCommand.of(owner, name, visibility, [], Optional.empty(), OptionalLong.of(length))
     }
 
     static StoredFile upload(FileService service, String owner, String name, String content, String visibility = "PRIVATE") {

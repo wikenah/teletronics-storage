@@ -1,7 +1,6 @@
 package com.teletronics.storage.presentation.http.request;
 
 import com.teletronics.storage.application.UploadCommand;
-import com.teletronics.storage.domain.file.Visibility;
 import com.teletronics.storage.presentation.http.problem.FormBodyNotSupportedException;
 import com.teletronics.storage.presentation.http.problem.InvalidRequestException;
 import com.teletronics.storage.presentation.http.problem.UnsupportedContentEncodingException;
@@ -9,19 +8,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 
 /**
- * Reads an upload request's headers and query parameters without touching the body, and rejects what the
- * HTTP layer owns (API-01 to API-05, API-24) before the file service is called. The content type is checked
- * first: for a form-urlencoded POST, reading parameters would consume the body.
+ * Reads an upload request's headers and query parameters without touching the body. What only HTTP knows is
+ * rejected here (form bodies, compressed bodies, a missing X-User-Id header); the filename, visibility and
+ * tags are checked by their own types when the command is built (API-01 to API-05, API-24). The content type
+ * is checked first: for a form-urlencoded POST, reading parameters would consume the body.
  */
 public final class UploadRequestParser {
-
-    public static final int MAX_TAGS = 5;
 
     private UploadRequestParser() {
     }
@@ -31,27 +28,12 @@ public final class UploadRequestParser {
         rejectFormBodies(contentType);
         rejectCompressedBodies(request.getHeader("Content-Encoding"));
         String owner = RequestUser.required(request);
-
-        String filename = request.getParameter("filename");
-        if (filename == null || filename.isBlank()) {
-            throw new InvalidRequestException("filename", "the filename parameter is required");
-        }
-        String visibility = request.getParameter("visibility");
-        Visibility.parse(visibility);
-
         String[] tags = request.getParameterValues("tags");
-        if (tags != null && tags.length > MAX_TAGS) {
-            throw new InvalidRequestException("tags", "at most 5 tags are allowed");
-        }
-        if (tags != null && Arrays.stream(tags).anyMatch(tag -> tag.indexOf(',') >= 0)) {
-            throw new InvalidRequestException("tags", "send each tag as its own 'tags' parameter; commas are not allowed");
-        }
-
         long length = request.getContentLengthLong();
-        return new UploadCommand(
+        return UploadCommand.of(
                 owner,
-                filename,
-                visibility,
+                request.getParameter("filename"),
+                request.getParameter("visibility"),
                 tags == null ? List.of() : List.of(tags),
                 Optional.ofNullable(contentType).map(String::trim).filter(value -> !value.isEmpty()),
                 length >= 0 ? OptionalLong.of(length) : OptionalLong.empty());

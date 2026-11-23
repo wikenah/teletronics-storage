@@ -78,21 +78,31 @@ public class MongoFileRepository implements FileRepository {
 
     @Override
     public PageResult<StoredFile> find(FileQuery query) {
+        Criteria filter = filterOf(query);
+        Query page = Query.query(filter)
+                .with(sortOf(query))
+                .skip((long) query.page() * query.size())
+                .limit(query.size());
+        return call(() -> {
+            long total = mongo.count(Query.query(filter), FileDocument.class);
+            var items = mongo.find(page, FileDocument.class).stream().map(FileDocument::toDomain).toList();
+            return new PageResult<>(items, query.page(), query.size(), total);
+        });
+    }
+
+    /** Only the filters the query carries: owner, visibility, tag. */
+    private static Criteria filterOf(FileQuery query) {
         Criteria criteria = new Criteria();
         query.owner().ifPresent(owner -> criteria.and(FileDocument.OWNER_ID).is(owner.value()));
         query.visibility().ifPresent(visibility -> criteria.and(FileDocument.VISIBILITY).is(visibility.name()));
         query.tag().ifPresent(tag -> criteria.and(FileDocument.TAGS).is(tag.value()));
+        return criteria;
+    }
 
-        return call(() -> {
-            long total = mongo.count(Query.query(criteria), FileDocument.class);
-            Sort.Direction direction = query.ascending() ? Sort.Direction.ASC : Sort.Direction.DESC;
-            Query page = Query.query(criteria)
-                    .with(Sort.by(direction, field(query.sortField())).and(Sort.by(direction, "_id")))
-                    .skip((long) query.page() * query.size())
-                    .limit(query.size());
-            var items = mongo.find(page, FileDocument.class).stream().map(FileDocument::toDomain).toList();
-            return new PageResult<>(items, query.page(), query.size(), total);
-        });
+    /** The requested field, then the id, so files with equal values keep a stable order across pages. */
+    private static Sort sortOf(FileQuery query) {
+        Sort.Direction direction = query.ascending() ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return Sort.by(direction, field(query.sortField())).and(Sort.by(direction, "_id"));
     }
 
     /**

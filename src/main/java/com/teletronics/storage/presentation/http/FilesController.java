@@ -48,12 +48,12 @@ public class FilesController {
 
     private static final String FILES = "/files";
 
-    private final FileService files;
+    private final FileService fileService;
 
     @PostMapping(FILES)
     public ResponseEntity<FileResponse> upload(HttpServletRequest request) throws IOException {
         UploadRequestValidator.validate(request);
-        try (PendingUpload pending = files.startUpload(UploadCommandMapper.toCommand(request))) {
+        try (PendingUpload pending = fileService.startUpload(UploadCommandMapper.toCommand(request))) {
             StoredFile file = pending.complete(request.getInputStream());
             return ResponseEntity.created(URI.create(FILES + "/" + file.id().value())).body(FileResponse.of(file));
         }
@@ -61,7 +61,7 @@ public class FilesController {
 
     @GetMapping(FILES + "/{id}")
     public FileResponse get(@PathVariable String id, @CurrentUser UserId userId) {
-        return FileResponse.of(files.get(userId, fileId(id)));
+        return FileResponse.of(fileService.get(userId, fileId(id)));
     }
 
     @PatchMapping(path = FILES + "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -69,30 +69,30 @@ public class FilesController {
                                @RequestBody Map<String, Object> body) {
         RenameBodyValidator.validate(body);
         String newName = (String) body.get(RenameBodyValidator.FILENAME);
-        return FileResponse.of(files.rename(userId, fileId(id), newName));
+        return FileResponse.of(fileService.rename(userId, fileId(id), newName));
     }
 
     @DeleteMapping(FILES + "/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id, @CurrentUser UserId userId) {
-        files.delete(userId, fileId(id));
+        fileService.delete(userId, fileId(id));
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping(FILES)
     public PageResponse mine(@CurrentUser UserId userId, HttpServletRequest request) {
         ListParamsValidator.validate(request);
-        return PageResponse.of(files.list(FileQueryMapper.toQuery(request, FileQuery.ownedBy(userId))));
+        return PageResponse.of(fileService.list(FileQueryMapper.toQuery(request, FileQuery.ownedBy(userId))));
     }
 
     @GetMapping(FILES + "/public")
     public PageResponse publicFiles(HttpServletRequest request) {
         ListParamsValidator.validate(request);
-        return PageResponse.of(files.list(FileQueryMapper.toQuery(request, FileQuery.publicFiles())));
+        return PageResponse.of(fileService.list(FileQueryMapper.toQuery(request, FileQuery.publicFiles())));
     }
 
     @GetMapping(FileResponse.DOWNLOAD_PATH + "{token}")
     public void download(@PathVariable String token, HttpServletResponse response) throws IOException {
-        Download download = files.openDownload(token);
+        Download download = fileService.openDownload(token);
         try (InputStream body = download.body()) {
             StoredFile file = download.file();
             response.setStatus(HttpServletResponse.SC_OK);

@@ -1,5 +1,6 @@
 package com.teletronics.storage.application
 
+import com.teletronics.storage.application.port.FileTooLargeException
 import com.teletronics.storage.application.port.StorageUnavailableException
 import com.teletronics.storage.domain.file.DuplicateFileException
 import com.teletronics.storage.domain.file.FileQuery

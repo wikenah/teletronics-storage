@@ -2,7 +2,7 @@ package com.teletronics.storage.infrastructure.storage.s3;
 
 import com.teletronics.storage.application.port.BlobNotFoundException;
 import com.teletronics.storage.application.port.BlobStore;
-import com.teletronics.storage.application.port.BlobTooLargeException;
+import com.teletronics.storage.application.port.FileTooLargeException;
 import com.teletronics.storage.application.port.StorageUnavailableException;
 import com.teletronics.storage.domain.file.StorageKey;
 import org.slf4j.Logger;
@@ -63,7 +63,7 @@ public class S3BlobStore implements BlobStore {
     public void store(StorageKey key, InputStream body, OptionalLong declaredLength) {
         long partSize = partSizeFor(declaredLength);
         if (partSize > MAX_BUFFER) {
-            throw new BlobTooLargeException("a part of " + partSize + " bytes can't be buffered");
+            throw new FileTooLargeException("a part of " + partSize + " bytes can't be buffered");
         }
         // A declared length below one part needs only that much buffer; the body can't be longer.
         int capacity = (int) (declaredLength.isPresent() ? Math.min(partSize, declaredLength.getAsLong()) : partSize);
@@ -135,7 +135,7 @@ public class S3BlobStore implements BlobStore {
             while (length > 0) {
                 int partNumber = completed.size() + 1;
                 if (partNumber > parts.maxParts()) {
-                    throw new BlobTooLargeException("the file needs more than " + parts.maxParts()
+                    throw new FileTooLargeException("the file needs more than " + parts.maxParts()
                             + " parts of " + buffer.length + " bytes");
                 }
                 String eTag = s3.uploadPart(UploadPartRequest.builder()

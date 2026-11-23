@@ -1,6 +1,6 @@
 package com.teletronics.storage.infrastructure.storage.s3
 
-import com.teletronics.storage.application.port.BlobTooLargeException
+import com.teletronics.storage.application.port.FileTooLargeException
 import com.teletronics.storage.application.port.StorageUnavailableException
 import com.teletronics.storage.domain.file.StorageKey
 import software.amazon.awssdk.core.exception.SdkClientException
@@ -195,7 +195,7 @@ class S3BlobStoreSpec extends Specification {
         3 * s3.uploadPart(_, _) >> UploadPartResponse.builder().eTag("e").build()
         1 * s3.abortMultipartUpload(_)
         0 * s3.completeMultipartUpload(_)
-        thrown(BlobTooLargeException)
+        thrown(FileTooLargeException)
     }
 
     def "an unreachable store on a single PutObject is reported as storage unavailable"() {

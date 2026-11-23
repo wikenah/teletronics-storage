@@ -2,8 +2,8 @@ package com.teletronics.storage.application;
 
 import com.teletronics.storage.application.port.BlobNotFoundException;
 import com.teletronics.storage.application.port.BlobStore;
-import com.teletronics.storage.application.port.BlobTooLargeException;
 import com.teletronics.storage.application.port.ContentTypeDetector;
+import com.teletronics.storage.application.port.FileTooLargeException;
 import com.teletronics.storage.domain.file.ContentType;
 import com.teletronics.storage.domain.file.DownloadToken;
 import com.teletronics.storage.domain.file.DuplicateFileException;
@@ -171,11 +171,7 @@ public class FileService {
         public StoredFile complete(InputStream body) {
             StorageKey key = StorageKey.random();
             DigestingInputStream digesting = new DigestingInputStream(body, detector.prefixLength());
-            try {
-                blobs.store(key, digesting, declaredLength);
-            } catch (BlobTooLargeException e) {
-                throw new FileTooLargeException(e.getMessage());
-            }
+            blobs.store(key, digesting, declaredLength);
 
             long size = digesting.count();
             if (declaredLength.isPresent() && declaredLength.getAsLong() != size) {

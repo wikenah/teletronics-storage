@@ -1,7 +1,7 @@
 package com.teletronics.storage.presentation.http
 
 import com.teletronics.storage.application.FileService
-import com.teletronics.storage.application.FileTooLargeException
+import com.teletronics.storage.application.port.FileTooLargeException
 import com.teletronics.storage.application.PendingUpload
 import com.teletronics.storage.application.UploadCapacityReachedException
 import com.teletronics.storage.application.UploadCommand

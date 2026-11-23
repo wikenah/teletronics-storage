@@ -21,7 +21,7 @@ public interface BlobStore {
      * Writes the whole stream under the key. On any failure nothing is left behind (the write is aborted).
      *
      * @throws StorageUnavailableException when the store can't be reached
-     * @throws BlobTooLargeException       when a body of unknown length outgrows the part limit
+     * @throws FileTooLargeException       when a body of unknown length outgrows the part limit
      */
     void store(StorageKey key, InputStream body, OptionalLong declaredLength);
 
